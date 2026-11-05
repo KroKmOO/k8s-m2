@@ -29,7 +29,7 @@ avec cert-manager et segmentation réseau Zero Trust.
 
 ## Groupe
 
-Membres : à compléter
+Membres : Dylan Cailleau
 
 ## Organisation
 
