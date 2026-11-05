@@ -1,0 +1,2 @@
+NAME           STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+data-mysql-0   Bound    pvc-d7632e6b-f53e-4eb5-84a1-70c18e24ee3e   1Gi        RWO            standard       <unset>                 15m

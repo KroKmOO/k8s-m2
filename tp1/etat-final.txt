@@ -1,0 +1,18 @@
+NAME                      READY   STATUS    RESTARTS   AGE
+pod/api-cfdcf88db-fdchc   2/2     Running   0          7m
+pod/mysql-0               1/1     Running   0          52s
+
+NAME            TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)    AGE
+service/mysql   ClusterIP   None         <none>        3306/TCP   16m
+
+NAME                  READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/api   1/1     1            1           7m
+
+NAME                            DESIRED   CURRENT   READY   AGE
+replicaset.apps/api-cfdcf88db   1         1         1       7m
+
+NAME                     READY   AGE
+statefulset.apps/mysql   1/1     52s
+
+NAME                                 STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+persistentvolumeclaim/data-mysql-0   Bound    pvc-d7632e6b-f53e-4eb5-84a1-70c18e24ee3e   1Gi        RWO            standard       <unset>                 16m

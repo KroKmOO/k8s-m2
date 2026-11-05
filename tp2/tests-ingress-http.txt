@@ -1,0 +1,11 @@
+<!doctype html>
+<html>
+  <body>
+    <h1>Frontend M2 Super Cloud</h1>
+  </body>
+</html>
+
+Bonjour depuis l'API
+
+Bonjour depuis l'API
+

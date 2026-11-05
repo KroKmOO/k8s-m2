@@ -1,0 +1,8 @@
+NAME                   READY   STATUS             RESTARTS   AGE   IP                NODE             NOMINATED NODE   READINESS GATES
+web-6b64f9896d-6nbml   0/1     ErrImagePull       0          14s   192.168.240.74    m2-k8s-worker2   <none>           <none>
+web-6b64f9896d-gzcfr   0/1     ErrImagePull       0          14s   192.168.231.138   m2-k8s-worker    <none>           <none>
+web-6b64f9896d-m2fnx   0/1     ImagePullBackOff   0          14s   192.168.231.139   m2-k8s-worker    <none>           <none>
+web-7c6cdd646-8946g    1/1     Running            0          28s   192.168.231.137   m2-k8s-worker    <none>           <none>
+web-7c6cdd646-8pxm8    1/1     Running            0          30s   192.168.231.136   m2-k8s-worker    <none>           <none>
+web-7c6cdd646-phrwc    1/1     Running            0          28s   192.168.240.73    m2-k8s-worker2   <none>           <none>
+web-7c6cdd646-pk5hb    1/1     Running            0          30s   192.168.240.72    m2-k8s-worker2   <none>           <none>

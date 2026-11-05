@@ -1,0 +1,14 @@
+NAME                  READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/web   5/5     5            5           10m
+
+NAME                             DESIRED   CURRENT   READY   AGE
+replicaset.apps/web-5fdd764687   0         0         0       10m
+replicaset.apps/web-6b64f9896d   0         0         0       35s
+replicaset.apps/web-7c6cdd646    5         5         5       51s
+
+NAME                      READY   STATUS    RESTARTS   AGE
+pod/web-7c6cdd646-5hk4l   1/1     Running   0          5s
+pod/web-7c6cdd646-8946g   1/1     Running   0          49s
+pod/web-7c6cdd646-8pxm8   1/1     Running   0          51s
+pod/web-7c6cdd646-phrwc   1/1     Running   0          49s
+pod/web-7c6cdd646-pk5hb   1/1     Running   0          51s

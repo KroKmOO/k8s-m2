@@ -1,0 +1,14 @@
+NAME                                           READY   STATUS    RESTARTS   AGE
+calico-kube-controllers-846669895c-dq82f       1/1     Running   0          3m42s
+calico-node-9xb4m                              1/1     Running   0          3m42s
+calico-node-c8xc8                              1/1     Running   0          3m42s
+calico-node-vk5j2                              1/1     Running   0          3m42s
+coredns-559f6c778d-k5mln                       1/1     Running   0          9m2s
+coredns-559f6c778d-zngs5                       1/1     Running   0          9m2s
+etcd-m2-k8s-control-plane                      1/1     Running   0          9m8s
+kube-apiserver-m2-k8s-control-plane            1/1     Running   0          9m8s
+kube-controller-manager-m2-k8s-control-plane   1/1     Running   0          9m8s
+kube-proxy-4skrr                               1/1     Running   0          9m1s
+kube-proxy-bnldm                               1/1     Running   0          9m1s
+kube-proxy-pz6mj                               1/1     Running   0          9m2s
+kube-scheduler-m2-k8s-control-plane            1/1     Running   0          9m8s

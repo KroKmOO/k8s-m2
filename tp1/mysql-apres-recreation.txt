@@ -1,0 +1,2 @@
+NAME      READY   STATUS    RESTARTS   AGE   IP                NODE            NOMINATED NODE   READINESS GATES
+mysql-0   1/1     Running   0          55s   192.168.231.145   m2-k8s-worker   <none>           <none>

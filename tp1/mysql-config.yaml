@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-config
+  namespace: tp1
+data:
+  MYSQL_DATABASE: appdb
+  MYSQL_USER: app
+  DB_HOST: mysql-0.mysql.tp1.svc.cluster.local

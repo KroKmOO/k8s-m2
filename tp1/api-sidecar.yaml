@@ -1,0 +1,86 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluent-bit-config
+  namespace: tp1
+data:
+  fluent-bit.conf: |
+    [SERVICE]
+        Flush        1
+        Log_Level    info
+    [INPUT]
+        Name         tail
+        Path         /var/log/app/*.log
+        Tag          app
+    [OUTPUT]
+        Name         stdout
+        Match        *
+        Format       json_lines
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  namespace: tp1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      initContainers:
+      - name: wait-mysql
+        image: busybox:1.36
+        command:
+        - sh
+        - -c
+        - |
+          until nc -z -w 2 mysql-0.mysql 3306; do
+            echo "attente de MySQL"
+            sleep 3
+          done
+      containers:
+      - name: api
+        image: busybox:1.36
+        command: ["sh", "-c"]
+        args:
+        - |
+          i=0
+          while true; do
+            i=$((i+1))
+            echo "$(date) INFO requete $i traitee" >> /var/log/app/app.log
+            sleep 2
+          done
+        env:
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: mysql-config
+              key: DB_HOST
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: MYSQL_PASSWORD
+        volumeMounts:
+        - name: app-logs
+          mountPath: /var/log/app
+      - name: fluent-bit
+        image: fluent/fluent-bit:3.1
+        volumeMounts:
+        - name: app-logs
+          mountPath: /var/log/app
+          readOnly: true
+        - name: fb-config
+          mountPath: /fluent-bit/etc/fluent-bit.conf
+          subPath: fluent-bit.conf
+      volumes:
+      - name: app-logs
+        emptyDir: {}
+      - name: fb-config
+        configMap:
+          name: fluent-bit-config
