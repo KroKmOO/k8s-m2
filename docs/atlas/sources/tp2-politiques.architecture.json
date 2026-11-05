@@ -1,0 +1,205 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "TP2 · Segmentation Zero Trust",
+    "subtitle": "Flux autorisés après Deny-All et règles inter-namespaces",
+    "output": "tp2-politiques.html"
+  },
+  "components": [
+    {
+      "id": "ing",
+      "type": "security",
+      "label": "Ingress Controller",
+      "sublabel": "Namespace ingress-nginx",
+      "pos": [
+        58,
+        60
+      ],
+      "size": [
+        215,
+        72
+      ]
+    },
+    {
+      "id": "front",
+      "type": "frontend",
+      "label": "Frontend TP2",
+      "sublabel": "Pods ×2 · port 80",
+      "pos": [
+        390,
+        60
+      ],
+      "size": [
+        220,
+        72
+      ]
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "API TP2",
+      "sublabel": "Pods ×2 · port 8080",
+      "pos": [
+        735,
+        60
+      ],
+      "size": [
+        220,
+        72
+      ]
+    },
+    {
+      "id": "dns",
+      "type": "cloud",
+      "label": "CoreDNS",
+      "sublabel": "kube-system · UDP/TCP 53",
+      "pos": [
+        390,
+        275
+      ],
+      "size": [
+        220,
+        72
+      ]
+    },
+    {
+      "id": "api1",
+      "type": "backend",
+      "label": "API TP1",
+      "sublabel": "Pod · label app=api",
+      "pos": [
+        58,
+        275
+      ],
+      "size": [
+        215,
+        72
+      ]
+    },
+    {
+      "id": "mysql",
+      "type": "database",
+      "label": "MySQL TP1",
+      "sublabel": "mysql-0 · port 3306",
+      "pos": [
+        735,
+        275
+      ],
+      "size": [
+        220,
+        72
+      ]
+    },
+    {
+      "id": "intrus",
+      "type": "external",
+      "label": "Pod intrus",
+      "sublabel": "Namespaces tp2 / default",
+      "pos": [
+        58,
+        460
+      ],
+      "size": [
+        215,
+        72
+      ],
+      "tag": "BLOQUÉ"
+    }
+  ],
+  "connections": [
+    {
+      "from": "ing",
+      "to": "front",
+      "label": "TCP 80",
+      "variant": "emphasis"
+    },
+    {
+      "from": "ing",
+      "to": "api",
+      "label": "TCP 8080",
+      "variant": "emphasis"
+    },
+    {
+      "from": "front",
+      "to": "api",
+      "label": "TCP 8080"
+    },
+    {
+      "from": "front",
+      "to": "dns",
+      "label": "DNS 53",
+      "variant": "dashed"
+    },
+    {
+      "from": "api",
+      "to": "dns",
+      "label": "DNS 53",
+      "variant": "dashed"
+    },
+    {
+      "from": "api",
+      "to": "mysql",
+      "label": "TCP 3306",
+      "variant": "emphasis"
+    },
+    {
+      "from": "api1",
+      "to": "mysql",
+      "label": "TCP 3306"
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "tp2 : deny-all + exceptions",
+      "wraps": [
+        "front",
+        "api"
+      ],
+      "pad": 10
+    },
+    {
+      "kind": "region",
+      "label": "tp1 : MySQL ingress restreint",
+      "wraps": [
+        "api1",
+        "mysql"
+      ],
+      "pad": 10
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Autorisations appliquées",
+      "items": [
+        "Ingress Controller → frontend / API",
+        "frontend → API (TCP 8080)",
+        "tp2 → CoreDNS (UDP/TCP 53)",
+        "API tp2 → MySQL tp1 (TCP 3306)",
+        "API tp1 → MySQL tp1 (TCP 3306)"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Blocages observés",
+      "items": [
+        "Pod default → API TP2 : timeout",
+        "Pod intrus TP2 → API : timeout",
+        "Frontend TP2 → Internet : timeout",
+        "API TP2 → frontend : timeout",
+        "Pod intrus TP1 → MySQL : échec"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Portée de la preuve",
+      "items": [
+        "Contrôle TCP 3306 depuis l’API TP2 : code retour 0",
+        "Le test TCP ne prouve pas une authentification SQL",
+        "Sélecteurs de labels ; accès API IP / FQDN contrôlé via Calico"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,195 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "TP2 · Exposition HTTP et TLS",
+    "subtitle": "Ingress Nginx, cert-manager et routage host/path",
+    "output": "tp2-ingress.html"
+  },
+  "components": [
+    {
+      "id": "browser",
+      "type": "external",
+      "label": "Navigateur Windows",
+      "sublabel": "hosts → 127.0.0.1",
+      "pos": [
+        45,
+        210
+      ],
+      "size": [
+        210,
+        70
+      ]
+    },
+    {
+      "id": "ing",
+      "type": "security",
+      "label": "Ingress Nginx",
+      "sublabel": "hostPorts 80/443 · HTTPS",
+      "pos": [
+        360,
+        210
+      ],
+      "size": [
+        230,
+        70
+      ]
+    },
+    {
+      "id": "cert",
+      "type": "security",
+      "label": "cert-manager",
+      "sublabel": "ClusterIssuer selfsigned",
+      "pos": [
+        360,
+        50
+      ],
+      "size": [
+        230,
+        70
+      ]
+    },
+    {
+      "id": "tls",
+      "type": "security",
+      "label": "Secret TLS",
+      "sublabel": "tp2-tls · Ready=True",
+      "pos": [
+        695,
+        50
+      ],
+      "size": [
+        230,
+        70
+      ]
+    },
+    {
+      "id": "frontsvc",
+      "type": "cloud",
+      "label": "Service frontend",
+      "sublabel": "ClusterIP · TCP 80",
+      "pos": [
+        695,
+        190
+      ],
+      "size": [
+        225,
+        70
+      ]
+    },
+    {
+      "id": "apisvc",
+      "type": "cloud",
+      "label": "Service api",
+      "sublabel": "ClusterIP · TCP 8080",
+      "pos": [
+        695,
+        345
+      ],
+      "size": [
+        225,
+        70
+      ]
+    },
+    {
+      "id": "frontpod",
+      "type": "frontend",
+      "label": "Frontend Pods ×2",
+      "sublabel": "nginx:1.27-alpine",
+      "pos": [
+        995,
+        190
+      ],
+      "size": [
+        190,
+        70
+      ]
+    },
+    {
+      "id": "apipod",
+      "type": "backend",
+      "label": "API Pods ×2",
+      "sublabel": "hashicorp/http-echo:1.0",
+      "pos": [
+        995,
+        345
+      ],
+      "size": [
+        190,
+        70
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "from": "browser",
+      "to": "ing",
+      "label": "HTTPS :443",
+      "variant": "emphasis"
+    },
+    {
+      "from": "cert",
+      "to": "tls",
+      "label": "certificat"
+    },
+    {
+      "from": "tls",
+      "to": "ing",
+      "label": "terminaison TLS"
+    },
+    {
+      "from": "ing",
+      "to": "frontsvc",
+      "label": "www.tp.local /"
+    },
+    {
+      "from": "ing",
+      "to": "apisvc",
+      "label": "api.tp.local / et /api"
+    },
+    {
+      "from": "frontsvc",
+      "to": "frontpod",
+      "label": "port 80"
+    },
+    {
+      "from": "apisvc",
+      "to": "apipod",
+      "label": "port 8080"
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Namespace tp2",
+      "wraps": [
+        "frontsvc",
+        "apisvc",
+        "frontpod",
+        "apipod"
+      ],
+      "pad": 8
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Routage observé",
+      "items": [
+        "www.tp.local → frontend",
+        "api.tp.local → API",
+        "www.tp.local/api → API ; règle path-based sans rewrite"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "TLS vérifié",
+      "items": [
+        "cert-manager crée Certificate/tp2-tls",
+        "Secret kubernetes.io/tls, certificat auto-signé",
+        "Redirection HTTP → HTTPS : code 308",
+        "curl -k requis faute de chaîne de confiance publique"
+      ]
+    }
+  ]
+}

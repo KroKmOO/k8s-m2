@@ -1,0 +1,1056 @@
+{
+  "graphs": {
+    "cluster": {
+      "schema_version": 1,
+      "diagram_type": "architecture",
+      "meta": {
+        "title": "TP1 · Cluster Kind et réseau Calico",
+        "subtitle": "Topologie locale constatée — 3 nœuds Kubernetes 1.37",
+        "output": "tp1-cluster.html"
+      },
+      "components": [
+        {
+          "id": "win",
+          "type": "external",
+          "label": "Poste Windows",
+          "sublabel": "Navigateur + Ubuntu WSL2",
+          "pos": [
+            65,
+            155
+          ],
+          "size": [
+            205,
+            68
+          ]
+        },
+        {
+          "id": "docker",
+          "type": "cloud",
+          "label": "Docker Desktop",
+          "sublabel": "Moteur Docker 28.4.0",
+          "pos": [
+            355,
+            155
+          ],
+          "size": [
+            205,
+            68
+          ]
+        },
+        {
+          "id": "cp",
+          "type": "backend",
+          "label": "Control-plane",
+          "sublabel": "m2-k8s-control-plane",
+          "pos": [
+            680,
+            55
+          ],
+          "size": [
+            240,
+            70
+          ],
+          "tag": "172.19.0.4"
+        },
+        {
+          "id": "wk1",
+          "type": "backend",
+          "label": "Worker 1",
+          "sublabel": "m2-k8s-worker",
+          "pos": [
+            680,
+            175
+          ],
+          "size": [
+            240,
+            70
+          ],
+          "tag": "172.19.0.2"
+        },
+        {
+          "id": "wk2",
+          "type": "backend",
+          "label": "Worker 2",
+          "sublabel": "m2-k8s-worker2",
+          "pos": [
+            680,
+            295
+          ],
+          "size": [
+            240,
+            70
+          ],
+          "tag": "172.19.0.3"
+        },
+        {
+          "id": "calico",
+          "type": "security",
+          "label": "Calico CNI",
+          "sublabel": "3 calico-node + controllers",
+          "pos": [
+            355,
+            345
+          ],
+          "size": [
+            205,
+            75
+          ],
+          "tag": "v3.33.0"
+        },
+        {
+          "id": "dns",
+          "type": "backend",
+          "label": "CoreDNS",
+          "sublabel": "2 réplicas, kube-system",
+          "pos": [
+            65,
+            345
+          ],
+          "size": [
+            205,
+            75
+          ],
+          "tag": "DNS cluster"
+        }
+      ],
+      "connections": [
+        {
+          "from": "win",
+          "to": "docker",
+          "label": "WSL2 / Docker"
+        },
+        {
+          "from": "docker",
+          "to": "cp",
+          "label": "nœud Kind"
+        },
+        {
+          "from": "docker",
+          "to": "wk1"
+        },
+        {
+          "from": "docker",
+          "to": "wk2"
+        },
+        {
+          "from": "calico",
+          "to": "wk1",
+          "label": "réseau Pods"
+        },
+        {
+          "from": "calico",
+          "to": "wk2"
+        },
+        {
+          "from": "dns",
+          "to": "calico",
+          "label": "DNS / CNI",
+          "variant": "dashed"
+        }
+      ],
+      "boundaries": [
+        {
+          "kind": "region",
+          "label": "Cluster m2-k8s · réseau Pods 192.168.0.0/16",
+          "wraps": [
+            "cp",
+            "wk1",
+            "wk2",
+            "calico",
+            "dns"
+          ],
+          "pad": 12
+        }
+      ],
+      "cards": [
+        {
+          "dot": "cyan",
+          "title": "Infrastructure constatée",
+          "items": [
+            "3 nœuds Ready sous Kubernetes 1.37.0",
+            "Control-plane 172.19.0.4, workers .2 et .3",
+            "Kind v0.33.0 + Docker Desktop sous WSL2"
+          ]
+        },
+        {
+          "dot": "emerald",
+          "title": "Réseau",
+          "items": [
+            "Calico v3.33.0 ; CNI Kind par défaut désactivé",
+            "CoreDNS 2/2 et calico-node 3/3 au moment de la preuve",
+            "Ports 80/443 redirigés vers le control-plane"
+          ]
+        }
+      ]
+    },
+    "data": {
+      "schema_version": 1,
+      "diagram_type": "architecture",
+      "meta": {
+        "title": "TP1 · Données, Pods et logs",
+        "subtitle": "StatefulSet, PVC et sidecar Fluent Bit",
+        "output": "tp1-donnees.html"
+      },
+      "components": [
+        {
+          "id": "cm",
+          "type": "cloud",
+          "label": "ConfigMap",
+          "sublabel": "mysql-config · DB_HOST",
+          "pos": [
+            65,
+            45
+          ],
+          "size": [
+            225,
+            66
+          ]
+        },
+        {
+          "id": "secret",
+          "type": "security",
+          "label": "Secret",
+          "sublabel": "mysql-secret · 2 clés",
+          "pos": [
+            65,
+            153
+          ],
+          "size": [
+            225,
+            66
+          ]
+        },
+        {
+          "id": "init",
+          "type": "backend",
+          "label": "Init container",
+          "sublabel": "wait-mysql · nc :3306",
+          "pos": [
+            385,
+            45
+          ],
+          "size": [
+            225,
+            66
+          ]
+        },
+        {
+          "id": "api",
+          "type": "backend",
+          "label": "Application TP1",
+          "sublabel": "busybox · logs synthétiques",
+          "pos": [
+            385,
+            153
+          ],
+          "size": [
+            225,
+            66
+          ]
+        },
+        {
+          "id": "fluent",
+          "type": "backend",
+          "label": "Sidecar Fluent Bit",
+          "sublabel": "fluent/fluent-bit:3.1",
+          "pos": [
+            385,
+            305
+          ],
+          "size": [
+            225,
+            66
+          ]
+        },
+        {
+          "id": "logs",
+          "type": "cloud",
+          "label": "Volume de logs",
+          "sublabel": "emptyDir /var/log/app",
+          "pos": [
+            675,
+            230
+          ],
+          "size": [
+            225,
+            66
+          ]
+        },
+        {
+          "id": "svc",
+          "type": "cloud",
+          "label": "Service Headless",
+          "sublabel": "mysql · TCP 3306",
+          "pos": [
+            675,
+            45
+          ],
+          "size": [
+            225,
+            66
+          ]
+        },
+        {
+          "id": "mysql",
+          "type": "database",
+          "label": "MySQL 8.4",
+          "sublabel": "StatefulSet mysql-0",
+          "pos": [
+            985,
+            45
+          ],
+          "size": [
+            185,
+            66
+          ]
+        },
+        {
+          "id": "pvc",
+          "type": "database",
+          "label": "PVC data-mysql-0",
+          "sublabel": "1 Gi · standard · Bound",
+          "pos": [
+            985,
+            230
+          ],
+          "size": [
+            185,
+            66
+          ]
+        }
+      ],
+      "connections": [
+        {
+          "from": "cm",
+          "to": "api",
+          "label": "DB_HOST"
+        },
+        {
+          "from": "secret",
+          "to": "api",
+          "label": "DB_PASSWORD"
+        },
+        {
+          "from": "init",
+          "to": "svc",
+          "label": "attend TCP"
+        },
+        {
+          "from": "api",
+          "to": "logs",
+          "label": "écrit app.log"
+        },
+        {
+          "from": "fluent",
+          "to": "logs",
+          "label": "lit app.log"
+        },
+        {
+          "from": "svc",
+          "to": "mysql",
+          "label": "DNS stable"
+        },
+        {
+          "from": "mysql",
+          "to": "pvc",
+          "label": "monte volume"
+        }
+      ],
+      "boundaries": [
+        {
+          "kind": "region",
+          "label": "Namespace tp1",
+          "wraps": [
+            "cm",
+            "secret",
+            "init",
+            "api",
+            "fluent",
+            "logs",
+            "svc",
+            "mysql",
+            "pvc"
+          ],
+          "pad": 12
+        }
+      ],
+      "cards": [
+        {
+          "dot": "cyan",
+          "title": "Charges utiles",
+          "items": [
+            "API TP1 : générateur de logs BusyBox, pas une API HTTP métier",
+            "Init container attend que MySQL accepte TCP/3306",
+            "Fluent Bit écrit les événements collectés sur stdout"
+          ]
+        },
+        {
+          "dot": "emerald",
+          "title": "Persistance vérifiée",
+          "items": [
+            "Table etudiants : Awa, Lucas, Ines",
+            "Suppression du Pod mysql-0 → données conservées",
+            "Suppression puis recréation du StatefulSet → données conservées",
+            "PVC data-mysql-0 réutilisé ; ne pas confondre avec une sauvegarde"
+          ]
+        }
+      ]
+    },
+    "ingress": {
+      "schema_version": 1,
+      "diagram_type": "architecture",
+      "meta": {
+        "title": "TP2 · Exposition HTTP et TLS",
+        "subtitle": "Ingress Nginx, cert-manager et routage host/path",
+        "output": "tp2-ingress.html"
+      },
+      "components": [
+        {
+          "id": "browser",
+          "type": "external",
+          "label": "Navigateur Windows",
+          "sublabel": "hosts → 127.0.0.1",
+          "pos": [
+            45,
+            210
+          ],
+          "size": [
+            210,
+            70
+          ]
+        },
+        {
+          "id": "ing",
+          "type": "security",
+          "label": "Ingress Nginx",
+          "sublabel": "hostPorts 80/443 · HTTPS",
+          "pos": [
+            360,
+            210
+          ],
+          "size": [
+            230,
+            70
+          ]
+        },
+        {
+          "id": "cert",
+          "type": "security",
+          "label": "cert-manager",
+          "sublabel": "ClusterIssuer selfsigned",
+          "pos": [
+            360,
+            50
+          ],
+          "size": [
+            230,
+            70
+          ]
+        },
+        {
+          "id": "tls",
+          "type": "security",
+          "label": "Secret TLS",
+          "sublabel": "tp2-tls · Ready=True",
+          "pos": [
+            695,
+            50
+          ],
+          "size": [
+            230,
+            70
+          ]
+        },
+        {
+          "id": "frontsvc",
+          "type": "cloud",
+          "label": "Service frontend",
+          "sublabel": "ClusterIP · TCP 80",
+          "pos": [
+            695,
+            190
+          ],
+          "size": [
+            225,
+            70
+          ]
+        },
+        {
+          "id": "apisvc",
+          "type": "cloud",
+          "label": "Service api",
+          "sublabel": "ClusterIP · TCP 8080",
+          "pos": [
+            695,
+            345
+          ],
+          "size": [
+            225,
+            70
+          ]
+        },
+        {
+          "id": "frontpod",
+          "type": "frontend",
+          "label": "Frontend Pods ×2",
+          "sublabel": "nginx:1.27-alpine",
+          "pos": [
+            995,
+            190
+          ],
+          "size": [
+            190,
+            70
+          ]
+        },
+        {
+          "id": "apipod",
+          "type": "backend",
+          "label": "API Pods ×2",
+          "sublabel": "hashicorp/http-echo:1.0",
+          "pos": [
+            995,
+            345
+          ],
+          "size": [
+            190,
+            70
+          ]
+        }
+      ],
+      "connections": [
+        {
+          "from": "browser",
+          "to": "ing",
+          "label": "HTTPS :443",
+          "variant": "emphasis"
+        },
+        {
+          "from": "cert",
+          "to": "tls",
+          "label": "certificat"
+        },
+        {
+          "from": "tls",
+          "to": "ing",
+          "label": "terminaison TLS"
+        },
+        {
+          "from": "ing",
+          "to": "frontsvc",
+          "label": "www.tp.local /"
+        },
+        {
+          "from": "ing",
+          "to": "apisvc",
+          "label": "api.tp.local / et /api"
+        },
+        {
+          "from": "frontsvc",
+          "to": "frontpod",
+          "label": "port 80"
+        },
+        {
+          "from": "apisvc",
+          "to": "apipod",
+          "label": "port 8080"
+        }
+      ],
+      "boundaries": [
+        {
+          "kind": "region",
+          "label": "Namespace tp2",
+          "wraps": [
+            "frontsvc",
+            "apisvc",
+            "frontpod",
+            "apipod"
+          ],
+          "pad": 8
+        }
+      ],
+      "cards": [
+        {
+          "dot": "cyan",
+          "title": "Routage observé",
+          "items": [
+            "www.tp.local → frontend",
+            "api.tp.local → API",
+            "www.tp.local/api → API ; règle path-based sans rewrite"
+          ]
+        },
+        {
+          "dot": "emerald",
+          "title": "TLS vérifié",
+          "items": [
+            "cert-manager crée Certificate/tp2-tls",
+            "Secret kubernetes.io/tls, certificat auto-signé",
+            "Redirection HTTP → HTTPS : code 308",
+            "curl -k requis faute de chaîne de confiance publique"
+          ]
+        }
+      ]
+    },
+    "policies": {
+      "schema_version": 1,
+      "diagram_type": "architecture",
+      "meta": {
+        "title": "TP2 · Segmentation Zero Trust",
+        "subtitle": "Flux autorisés après Deny-All et règles inter-namespaces",
+        "output": "tp2-politiques.html"
+      },
+      "components": [
+        {
+          "id": "ing",
+          "type": "security",
+          "label": "Ingress Controller",
+          "sublabel": "Namespace ingress-nginx",
+          "pos": [
+            58,
+            60
+          ],
+          "size": [
+            215,
+            72
+          ]
+        },
+        {
+          "id": "front",
+          "type": "frontend",
+          "label": "Frontend TP2",
+          "sublabel": "Pods ×2 · port 80",
+          "pos": [
+            390,
+            60
+          ],
+          "size": [
+            220,
+            72
+          ]
+        },
+        {
+          "id": "api",
+          "type": "backend",
+          "label": "API TP2",
+          "sublabel": "Pods ×2 · port 8080",
+          "pos": [
+            735,
+            60
+          ],
+          "size": [
+            220,
+            72
+          ]
+        },
+        {
+          "id": "dns",
+          "type": "cloud",
+          "label": "CoreDNS",
+          "sublabel": "kube-system · UDP/TCP 53",
+          "pos": [
+            390,
+            275
+          ],
+          "size": [
+            220,
+            72
+          ]
+        },
+        {
+          "id": "api1",
+          "type": "backend",
+          "label": "API TP1",
+          "sublabel": "Pod · label app=api",
+          "pos": [
+            58,
+            275
+          ],
+          "size": [
+            215,
+            72
+          ]
+        },
+        {
+          "id": "mysql",
+          "type": "database",
+          "label": "MySQL TP1",
+          "sublabel": "mysql-0 · port 3306",
+          "pos": [
+            735,
+            275
+          ],
+          "size": [
+            220,
+            72
+          ]
+        },
+        {
+          "id": "intrus",
+          "type": "external",
+          "label": "Pod intrus",
+          "sublabel": "Namespaces tp2 / default",
+          "pos": [
+            58,
+            460
+          ],
+          "size": [
+            215,
+            72
+          ],
+          "tag": "BLOQUÉ"
+        }
+      ],
+      "connections": [
+        {
+          "from": "ing",
+          "to": "front",
+          "label": "TCP 80",
+          "variant": "emphasis"
+        },
+        {
+          "from": "ing",
+          "to": "api",
+          "label": "TCP 8080",
+          "variant": "emphasis"
+        },
+        {
+          "from": "front",
+          "to": "api",
+          "label": "TCP 8080"
+        },
+        {
+          "from": "front",
+          "to": "dns",
+          "label": "DNS 53",
+          "variant": "dashed"
+        },
+        {
+          "from": "api",
+          "to": "dns",
+          "label": "DNS 53",
+          "variant": "dashed"
+        },
+        {
+          "from": "api",
+          "to": "mysql",
+          "label": "TCP 3306",
+          "variant": "emphasis"
+        },
+        {
+          "from": "api1",
+          "to": "mysql",
+          "label": "TCP 3306"
+        }
+      ],
+      "boundaries": [
+        {
+          "kind": "region",
+          "label": "tp2 : deny-all + exceptions",
+          "wraps": [
+            "front",
+            "api"
+          ],
+          "pad": 10
+        },
+        {
+          "kind": "region",
+          "label": "tp1 : MySQL ingress restreint",
+          "wraps": [
+            "api1",
+            "mysql"
+          ],
+          "pad": 10
+        }
+      ],
+      "cards": [
+        {
+          "dot": "emerald",
+          "title": "Autorisations appliquées",
+          "items": [
+            "Ingress Controller → frontend / API",
+            "frontend → API (TCP 8080)",
+            "tp2 → CoreDNS (UDP/TCP 53)",
+            "API tp2 → MySQL tp1 (TCP 3306)",
+            "API tp1 → MySQL tp1 (TCP 3306)"
+          ]
+        },
+        {
+          "dot": "rose",
+          "title": "Blocages observés",
+          "items": [
+            "Pod default → API TP2 : timeout",
+            "Pod intrus TP2 → API : timeout",
+            "Frontend TP2 → Internet : timeout",
+            "API TP2 → frontend : timeout",
+            "Pod intrus TP1 → MySQL : échec"
+          ]
+        },
+        {
+          "dot": "cyan",
+          "title": "Portée de la preuve",
+          "items": [
+            "Contrôle TCP 3306 depuis l’API TP2 : code retour 0",
+            "Le test TCP ne prouve pas une authentification SQL",
+            "Sélecteurs de labels ; accès API IP / FQDN contrôlé via Calico"
+          ]
+        }
+      ]
+    }
+  },
+  "images": [
+    {
+      "group": "TP1",
+      "name": "01 cluster ready",
+      "src": "assets/preuves/tp1/01-cluster-ready.png"
+    },
+    {
+      "group": "TP1",
+      "name": "02 nginx localhost",
+      "src": "assets/preuves/tp1/02-nginx-localhost.png"
+    },
+    {
+      "group": "TP1",
+      "name": "03 image inexistante",
+      "src": "assets/preuves/tp1/03-image-inexistante.png"
+    },
+    {
+      "group": "TP1",
+      "name": "04 rollback",
+      "src": "assets/preuves/tp1/04-rollback.png"
+    },
+    {
+      "group": "TP1",
+      "name": "05 mysql et stockage",
+      "src": "assets/preuves/tp1/05-mysql-et-stockage.png"
+    },
+    {
+      "group": "TP1",
+      "name": "06 premiere lecture sql",
+      "src": "assets/preuves/tp1/06-premiere-lecture-sql.png"
+    },
+    {
+      "group": "TP1",
+      "name": "07 fluent bit logs",
+      "src": "assets/preuves/tp1/07-fluent-bit-logs.png"
+    },
+    {
+      "group": "TP1",
+      "name": "08 injection env et recreation",
+      "src": "assets/preuves/tp1/08-injection-env-et-recreation.png"
+    },
+    {
+      "group": "TP1",
+      "name": "09 persistance apres suppression pod",
+      "src": "assets/preuves/tp1/09-persistance-apres-suppression-pod.png"
+    },
+    {
+      "group": "TP1",
+      "name": "10 pvc conserve apres suppression sts",
+      "src": "assets/preuves/tp1/10-pvc-conserve-apres-suppression-sts.png"
+    },
+    {
+      "group": "TP1",
+      "name": "11 persistance apres recreation sts",
+      "src": "assets/preuves/tp1/11-persistance-apres-recreation-sts.png"
+    },
+    {
+      "group": "TP1",
+      "name": "12 etat final cluster",
+      "src": "assets/preuves/tp1/12-etat-final-cluster.png"
+    },
+    {
+      "group": "TP2",
+      "name": "01 ingress nginx 404",
+      "src": "assets/preuves/tp2/01-ingress-nginx-404.png"
+    },
+    {
+      "group": "TP2",
+      "name": "02 dns et endpoints api",
+      "src": "assets/preuves/tp2/02-dns-et-endpoints-api.png"
+    },
+    {
+      "group": "TP2",
+      "name": "03 dns et services",
+      "src": "assets/preuves/tp2/03-dns-et-services.png"
+    },
+    {
+      "group": "TP2",
+      "name": "04 routage path api",
+      "src": "assets/preuves/tp2/04-routage-path-api.png"
+    },
+    {
+      "group": "TP2",
+      "name": "05 routage host api",
+      "src": "assets/preuves/tp2/05-routage-host-api.png"
+    },
+    {
+      "group": "TP2",
+      "name": "06 routage host frontend",
+      "src": "assets/preuves/tp2/06-routage-host-frontend.png"
+    },
+    {
+      "group": "TP2",
+      "name": "07 certificat et https",
+      "src": "assets/preuves/tp2/07-certificat-et-https.png"
+    },
+    {
+      "group": "TP2",
+      "name": "08 deny all blocage",
+      "src": "assets/preuves/tp2/08-deny-all-blocage.png"
+    },
+    {
+      "group": "TP2",
+      "name": "09 autorisation selective",
+      "src": "assets/preuves/tp2/09-autorisation-selective.png"
+    },
+    {
+      "group": "TP2",
+      "name": "10 tests negatifs complementaires",
+      "src": "assets/preuves/tp2/10-tests-negatifs-complementaires.png"
+    },
+    {
+      "group": "TP2",
+      "name": "11 inter namespaces tests",
+      "src": "assets/preuves/tp2/11-inter-namespaces-tests.png"
+    },
+    {
+      "group": "TP2",
+      "name": "12 politiques inter namespaces",
+      "src": "assets/preuves/tp2/12-politiques-inter-namespaces.png"
+    }
+  ],
+  "project": "Kubernetes M2 Super Cloud · TP1 + TP2",
+  "date": "05 novembre 2026",
+  "level": "Documentation de laboratoire fondée sur les résultats observés",
+  "environment": [
+    {
+      "label": "Cluster",
+      "value": "m2-k8s"
+    },
+    {
+      "label": "Nœuds",
+      "value": "3 / 3 Ready"
+    },
+    {
+      "label": "Kubernetes",
+      "value": "v1.37.0"
+    },
+    {
+      "label": "CNI",
+      "value": "Calico v3.33.0"
+    },
+    {
+      "label": "TLS",
+      "value": "cert-manager / selfsigned"
+    },
+    {
+      "label": "Services",
+      "value": "2 TP2 + MySQL TP1"
+    }
+  ],
+  "tests": [
+    {
+      "n": 1,
+      "label": "Client HTTPS → Frontend",
+      "expected": "Autorisé",
+      "observed": "HTTP(S) OK",
+      "status": "success"
+    },
+    {
+      "n": 2,
+      "label": "Client HTTPS → API",
+      "expected": "Autorisé",
+      "observed": "HTTP(S) OK",
+      "status": "success"
+    },
+    {
+      "n": 3,
+      "label": "Frontend TP2 → API TP2",
+      "expected": "Autorisé",
+      "observed": "OK (TCP 8080)",
+      "status": "success"
+    },
+    {
+      "n": 4,
+      "label": "Pod default → API TP2",
+      "expected": "Bloqué",
+      "observed": "Timeout",
+      "status": "blocked"
+    },
+    {
+      "n": 5,
+      "label": "Pod intrus TP2 → API TP2",
+      "expected": "Bloqué",
+      "observed": "Timeout",
+      "status": "blocked"
+    },
+    {
+      "n": 6,
+      "label": "Frontend TP2 → Internet",
+      "expected": "Bloqué",
+      "observed": "Timeout",
+      "status": "blocked"
+    },
+    {
+      "n": 7,
+      "label": "API TP2 → Frontend TP2",
+      "expected": "Bloqué",
+      "observed": "Timeout (debug BusyBox)",
+      "status": "blocked"
+    }
+  ],
+  "extra": [
+    {
+      "label": "API TP1 → MySQL",
+      "result": "Connexion TCP réussie",
+      "status": "success"
+    },
+    {
+      "label": "API TP2 → MySQL",
+      "result": "DNS résolu / TCP 3306 : code 0",
+      "status": "success"
+    },
+    {
+      "label": "Intrus TP1 → MySQL",
+      "result": "Connexion échouée",
+      "status": "blocked"
+    },
+    {
+      "label": "MySQL / perte du Pod",
+      "result": "3 lignes retrouvées",
+      "status": "success"
+    },
+    {
+      "label": "MySQL / perte du StatefulSet",
+      "result": "3 lignes retrouvées",
+      "status": "success"
+    }
+  ],
+  "manifestGroups": {
+    "TP1": [
+      "kind-config.yaml",
+      "mysql-config.yaml",
+      "mysql.yaml",
+      "api-sidecar.yaml"
+    ],
+    "TP2": [
+      "values-ingress.yaml",
+      "apps.yaml",
+      "ingress.yaml",
+      "issuer.yaml",
+      "np-01-deny-all.yaml",
+      "np-02-allow-dns.yaml",
+      "np-03-allow-ingress-controller.yaml",
+      "np-04-frontend-to-api.yaml",
+      "np-05-api-to-mysql.yaml",
+      "np-06-mysql-ingress.yaml"
+    ]
+  },
+  "notes": [
+    "Les sources de référence sont les manifests et comptes rendus des TP1 et TP2 ; aucune connexion live au cluster n’a été réalisée pour cet Atlas.",
+    "Le Pod « API » du TP1 est un générateur de logs BusyBox, distinct de l’API HTTP du TP2.",
+    "Un test réussi sur TCP 3306 démontre une connectivité, pas des identifiants SQL valides.",
+    "Les règles de cours autorisent le namespace ingress-nginx en entier sans limiter les ports : ce n’est pas une configuration de production.",
+    "La suppression du Pod et du StatefulSet n’équivaut pas à une sauvegarde de données."
+  ]
+}

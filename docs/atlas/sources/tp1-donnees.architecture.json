@@ -1,0 +1,213 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "TP1 · Données, Pods et logs",
+    "subtitle": "StatefulSet, PVC et sidecar Fluent Bit",
+    "output": "tp1-donnees.html"
+  },
+  "components": [
+    {
+      "id": "cm",
+      "type": "cloud",
+      "label": "ConfigMap",
+      "sublabel": "mysql-config · DB_HOST",
+      "pos": [
+        65,
+        45
+      ],
+      "size": [
+        225,
+        66
+      ]
+    },
+    {
+      "id": "secret",
+      "type": "security",
+      "label": "Secret",
+      "sublabel": "mysql-secret · 2 clés",
+      "pos": [
+        65,
+        153
+      ],
+      "size": [
+        225,
+        66
+      ]
+    },
+    {
+      "id": "init",
+      "type": "backend",
+      "label": "Init container",
+      "sublabel": "wait-mysql · nc :3306",
+      "pos": [
+        385,
+        45
+      ],
+      "size": [
+        225,
+        66
+      ]
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "Application TP1",
+      "sublabel": "busybox · logs synthétiques",
+      "pos": [
+        385,
+        153
+      ],
+      "size": [
+        225,
+        66
+      ]
+    },
+    {
+      "id": "fluent",
+      "type": "backend",
+      "label": "Sidecar Fluent Bit",
+      "sublabel": "fluent/fluent-bit:3.1",
+      "pos": [
+        385,
+        305
+      ],
+      "size": [
+        225,
+        66
+      ]
+    },
+    {
+      "id": "logs",
+      "type": "cloud",
+      "label": "Volume de logs",
+      "sublabel": "emptyDir /var/log/app",
+      "pos": [
+        675,
+        230
+      ],
+      "size": [
+        225,
+        66
+      ]
+    },
+    {
+      "id": "svc",
+      "type": "cloud",
+      "label": "Service Headless",
+      "sublabel": "mysql · TCP 3306",
+      "pos": [
+        675,
+        45
+      ],
+      "size": [
+        225,
+        66
+      ]
+    },
+    {
+      "id": "mysql",
+      "type": "database",
+      "label": "MySQL 8.4",
+      "sublabel": "StatefulSet mysql-0",
+      "pos": [
+        985,
+        45
+      ],
+      "size": [
+        185,
+        66
+      ]
+    },
+    {
+      "id": "pvc",
+      "type": "database",
+      "label": "PVC data-mysql-0",
+      "sublabel": "1 Gi · standard · Bound",
+      "pos": [
+        985,
+        230
+      ],
+      "size": [
+        185,
+        66
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "from": "cm",
+      "to": "api",
+      "label": "DB_HOST"
+    },
+    {
+      "from": "secret",
+      "to": "api",
+      "label": "DB_PASSWORD"
+    },
+    {
+      "from": "init",
+      "to": "svc",
+      "label": "attend TCP"
+    },
+    {
+      "from": "api",
+      "to": "logs",
+      "label": "écrit app.log"
+    },
+    {
+      "from": "fluent",
+      "to": "logs",
+      "label": "lit app.log"
+    },
+    {
+      "from": "svc",
+      "to": "mysql",
+      "label": "DNS stable"
+    },
+    {
+      "from": "mysql",
+      "to": "pvc",
+      "label": "monte volume"
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Namespace tp1",
+      "wraps": [
+        "cm",
+        "secret",
+        "init",
+        "api",
+        "fluent",
+        "logs",
+        "svc",
+        "mysql",
+        "pvc"
+      ],
+      "pad": 12
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Charges utiles",
+      "items": [
+        "API TP1 : générateur de logs BusyBox, pas une API HTTP métier",
+        "Init container attend que MySQL accepte TCP/3306",
+        "Fluent Bit écrit les événements collectés sur stdout"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Persistance vérifiée",
+      "items": [
+        "Table etudiants : Awa, Lucas, Ines",
+        "Suppression du Pod mysql-0 → données conservées",
+        "Suppression puis recréation du StatefulSet → données conservées",
+        "PVC data-mysql-0 réutilisé ; ne pas confondre avec une sauvegarde"
+      ]
+    }
+  ]
+}

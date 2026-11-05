@@ -1,0 +1,183 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "TP1 · Cluster Kind et réseau Calico",
+    "subtitle": "Topologie locale constatée — 3 nœuds Kubernetes 1.37",
+    "output": "tp1-cluster.html"
+  },
+  "components": [
+    {
+      "id": "win",
+      "type": "external",
+      "label": "Poste Windows",
+      "sublabel": "Navigateur + Ubuntu WSL2",
+      "pos": [
+        65,
+        155
+      ],
+      "size": [
+        205,
+        68
+      ]
+    },
+    {
+      "id": "docker",
+      "type": "cloud",
+      "label": "Docker Desktop",
+      "sublabel": "Moteur Docker 28.4.0",
+      "pos": [
+        355,
+        155
+      ],
+      "size": [
+        205,
+        68
+      ]
+    },
+    {
+      "id": "cp",
+      "type": "backend",
+      "label": "Control-plane",
+      "sublabel": "m2-k8s-control-plane",
+      "pos": [
+        680,
+        55
+      ],
+      "size": [
+        240,
+        70
+      ],
+      "tag": "172.19.0.4"
+    },
+    {
+      "id": "wk1",
+      "type": "backend",
+      "label": "Worker 1",
+      "sublabel": "m2-k8s-worker",
+      "pos": [
+        680,
+        175
+      ],
+      "size": [
+        240,
+        70
+      ],
+      "tag": "172.19.0.2"
+    },
+    {
+      "id": "wk2",
+      "type": "backend",
+      "label": "Worker 2",
+      "sublabel": "m2-k8s-worker2",
+      "pos": [
+        680,
+        295
+      ],
+      "size": [
+        240,
+        70
+      ],
+      "tag": "172.19.0.3"
+    },
+    {
+      "id": "calico",
+      "type": "security",
+      "label": "Calico CNI",
+      "sublabel": "3 calico-node + controllers",
+      "pos": [
+        355,
+        345
+      ],
+      "size": [
+        205,
+        75
+      ],
+      "tag": "v3.33.0"
+    },
+    {
+      "id": "dns",
+      "type": "backend",
+      "label": "CoreDNS",
+      "sublabel": "2 réplicas, kube-system",
+      "pos": [
+        65,
+        345
+      ],
+      "size": [
+        205,
+        75
+      ],
+      "tag": "DNS cluster"
+    }
+  ],
+  "connections": [
+    {
+      "from": "win",
+      "to": "docker",
+      "label": "WSL2 / Docker"
+    },
+    {
+      "from": "docker",
+      "to": "cp",
+      "label": "nœud Kind"
+    },
+    {
+      "from": "docker",
+      "to": "wk1"
+    },
+    {
+      "from": "docker",
+      "to": "wk2"
+    },
+    {
+      "from": "calico",
+      "to": "wk1",
+      "label": "réseau Pods"
+    },
+    {
+      "from": "calico",
+      "to": "wk2"
+    },
+    {
+      "from": "dns",
+      "to": "calico",
+      "label": "DNS / CNI",
+      "variant": "dashed"
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Cluster m2-k8s · réseau Pods 192.168.0.0/16",
+      "wraps": [
+        "cp",
+        "wk1",
+        "wk2",
+        "calico",
+        "dns"
+      ],
+      "pad": 12
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Infrastructure constatée",
+      "items": [
+        "3 nœuds Ready sous Kubernetes 1.37.0",
+        "Control-plane 172.19.0.4, workers .2 et .3",
+        "Kind v0.33.0 + Docker Desktop sous WSL2"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Réseau",
+      "items": [
+        "Calico v3.33.0 ; CNI Kind par défaut désactivé",
+        "CoreDNS 2/2 et calico-node 3/3 au moment de la preuve",
+        "Ports 80/443 redirigés vers le control-plane"
+      ]
+    }
+  ]
+}
