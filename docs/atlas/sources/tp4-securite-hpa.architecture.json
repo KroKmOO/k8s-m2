@@ -1,0 +1,255 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "TP4 · Sécurité, HPA et livraison",
+    "subtitle": "Contrôles RBAC, accès réseau, métriques, charge et rollback — état des preuves",
+    "output": "tp4-securite-hpa.html"
+  },
+  "components": [
+    {
+      "id": "ns",
+      "type": "security",
+      "label": "Namespace restricted",
+      "sublabel": "Pod Security Admission",
+      "pos": [
+        35,
+        35
+      ],
+      "size": [
+        240,
+        70
+      ]
+    },
+    {
+      "id": "rbac",
+      "type": "security",
+      "label": "Role lecteur",
+      "sublabel": "kubectl can-i : yes / no",
+      "pos": [
+        35,
+        170
+      ],
+      "size": [
+        240,
+        70
+      ]
+    },
+    {
+      "id": "pol",
+      "type": "security",
+      "label": "NetworkPolicies",
+      "sublabel": "deny-all + flux nécessaires",
+      "pos": [
+        35,
+        305
+      ],
+      "size": [
+        240,
+        70
+      ]
+    },
+    {
+      "id": "ing",
+      "type": "external",
+      "label": "Client de charge",
+      "sublabel": "HTTPS /api/cpu?ms=200",
+      "pos": [
+        390,
+        170
+      ],
+      "size": [
+        240,
+        70
+      ]
+    },
+    {
+      "id": "hpa",
+      "type": "cloud",
+      "label": "HPA API",
+      "sublabel": "CPU cible 60 % · 2–6 Pods",
+      "pos": [
+        390,
+        35
+      ],
+      "size": [
+        240,
+        70
+      ]
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "API Inventaire",
+      "sublabel": "2 réplicas observés",
+      "pos": [
+        740,
+        170
+      ],
+      "size": [
+        225,
+        70
+      ]
+    },
+    {
+      "id": "prom",
+      "type": "backend",
+      "label": "Prometheus",
+      "sublabel": "Métriques CPU, règle latence",
+      "pos": [
+        1055,
+        30
+      ],
+      "size": [
+        240,
+        70
+      ]
+    },
+    {
+      "id": "loki",
+      "type": "database",
+      "label": "Loki / Fluent Bit",
+      "sublabel": "Logs /api/cpu confirmés",
+      "pos": [
+        1055,
+        170
+      ],
+      "size": [
+        240,
+        70
+      ]
+    },
+    {
+      "id": "helm",
+      "type": "cloud",
+      "label": "Helm releases",
+      "sublabel": "Upgrade puis rollback réussis",
+      "pos": [
+        740,
+        355
+      ],
+      "size": [
+        225,
+        70
+      ]
+    },
+    {
+      "id": "ci",
+      "type": "cloud",
+      "label": "GitHub Actions / GHCR",
+      "sublabel": "Pipeline à valider après push",
+      "pos": [
+        1055,
+        355
+      ],
+      "size": [
+        240,
+        70
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "from": "ns",
+      "to": "api",
+      "label": "PSS restricted"
+    },
+    {
+      "from": "rbac",
+      "to": "api",
+      "label": "droits lecture sans Secret"
+    },
+    {
+      "from": "pol",
+      "to": "api",
+      "label": "filtrage"
+    },
+    {
+      "from": "ing",
+      "to": "api",
+      "label": "CPU load",
+      "variant": "emphasis"
+    },
+    {
+      "from": "hpa",
+      "to": "api",
+      "label": "autoscaling/v2"
+    },
+    {
+      "from": "api",
+      "to": "prom",
+      "label": "/metrics"
+    },
+    {
+      "from": "api",
+      "to": "loki",
+      "label": "logs stdout",
+      "variant": "emphasis"
+    },
+    {
+      "from": "helm",
+      "to": "api",
+      "label": "deployment / rollback",
+      "variant": "emphasis"
+    },
+    {
+      "from": "ci",
+      "to": "helm",
+      "label": "image + GitOps (prévu)"
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Namespace inventaire · sécurité",
+      "wraps": [
+        "ns",
+        "rbac",
+        "pol"
+      ],
+      "pad": 8
+    },
+    {
+      "kind": "region",
+      "label": "Exposition et montée en charge",
+      "wraps": [
+        "hpa",
+        "ing",
+        "api"
+      ],
+      "pad": 8
+    },
+    {
+      "kind": "region",
+      "label": "Monitoring et pipeline",
+      "wraps": [
+        "prom",
+        "loki",
+        "ci"
+      ],
+      "pad": 8
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Sécurité / exploitation vérifiées",
+      "items": [
+        "RBAC lecteur : autorisation lecture yes, refus no",
+        "Namespace restricted et workloads Running observés",
+        "Loki : logs des appels /api/cpu visibles",
+        "Helm upgrade à 3 frontends puis rollback à 2"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Tests en attente de démonstration",
+      "items": [
+        "HPA resté à 2 réplicas sur la capture (8 % puis 37 % CPU, cible 60 %)",
+        "Test réseau autorisé / bloqué non prouvé par la capture RBAC seule",
+        "Alerte TP4 FIRING non montrée",
+        "Workflow GitHub Actions Trivy / GHCR pas encore exécuté au moment des preuves"
+      ]
+    }
+  ]
+}

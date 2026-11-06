@@ -62,3 +62,12 @@ Le portail ne remplace pas les fichiers `tp1/`, `tp2/` et `tp3/` exigés par la 
 - [Compte rendu et 11 réponses](../../tp3/README.md).
 
 La présentation Atlas est **statique** (GitHub Pages) et ne prend pas la main sur Grafana, Prometheus ou Kind.
+
+
+## TP4 — Inventaire (06/11/2026)
+
+Deux nouvelles vues Archify Atlas documentent l’application trois tiers, sa persistance PostgreSQL et les contrôles de sécurité et d’observabilité. Les 9 captures utilisées sont classées dans `assets/preuves/tp4/`, portant la galerie à 49 preuves.
+
+Les vues distinguent les validations confirmées (Helm, HTTPS, PVC, RBAC, Loki, rollback) et les tests restant à démontrer (HPA scale-up, NetworkPolicies, alerte TP4 FIRING et GitHub Actions).
+
+Sources éditables : `sources/tp4-inventaire.architecture.json` et `sources/tp4-securite-hpa.architecture.json`. Le portail HTML est statique et documentaire.

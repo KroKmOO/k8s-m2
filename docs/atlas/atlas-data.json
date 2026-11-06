@@ -1246,6 +1246,498 @@
           ]
         }
       ]
+    },
+    "inventaire": {
+      "schema_version": 1,
+      "diagram_type": "architecture",
+      "meta": {
+        "title": "TP4 · Application Inventaire",
+        "subtitle": "Architecture 3 tiers en HTTPS — Helm, PostgreSQL et services Kubernetes",
+        "output": "tp4-inventaire.html"
+      },
+      "components": [
+        {
+          "id": "browser",
+          "type": "external",
+          "label": "Navigateur Windows",
+          "sublabel": "inventaire.local · HTTPS",
+          "pos": [
+            25,
+            170
+          ],
+          "size": [
+            205,
+            70
+          ]
+        },
+        {
+          "id": "ing",
+          "type": "security",
+          "label": "Ingress Nginx",
+          "sublabel": "cert-manager · TLS selfsigned",
+          "pos": [
+            305,
+            170
+          ],
+          "size": [
+            250,
+            70
+          ]
+        },
+        {
+          "id": "front",
+          "type": "frontend",
+          "label": "Frontend Nginx",
+          "sublabel": "2 réplicas · port 8080",
+          "pos": [
+            645,
+            48
+          ],
+          "size": [
+            250,
+            70
+          ]
+        },
+        {
+          "id": "api",
+          "type": "backend",
+          "label": "API Node.js",
+          "sublabel": "2 Pods Ready · port 3000",
+          "pos": [
+            645,
+            250
+          ],
+          "size": [
+            250,
+            70
+          ]
+        },
+        {
+          "id": "svc",
+          "type": "cloud",
+          "label": "Service API",
+          "sublabel": "ClusterIP /api",
+          "pos": [
+            645,
+            380
+          ],
+          "size": [
+            250,
+            70
+          ]
+        },
+        {
+          "id": "pg",
+          "type": "database",
+          "label": "PostgreSQL 16",
+          "sublabel": "StatefulSet · 1 réplique",
+          "pos": [
+            1015,
+            250
+          ],
+          "size": [
+            240,
+            70
+          ]
+        },
+        {
+          "id": "pvc",
+          "type": "database",
+          "label": "PVC PostgreSQL",
+          "sublabel": "1 Gio Bound, mêmes données",
+          "pos": [
+            1015,
+            382
+          ],
+          "size": [
+            240,
+            70
+          ]
+        },
+        {
+          "id": "tls",
+          "type": "security",
+          "label": "Certificat TLS",
+          "sublabel": "inventaire-tls · Ready",
+          "pos": [
+            325,
+            48
+          ],
+          "size": [
+            210,
+            70
+          ]
+        },
+        {
+          "id": "smon",
+          "type": "cloud",
+          "label": "ServiceMonitor",
+          "sublabel": "/metrics · toutes 15 s",
+          "pos": [
+            1015,
+            48
+          ],
+          "size": [
+            240,
+            70
+          ]
+        }
+      ],
+      "connections": [
+        {
+          "from": "browser",
+          "to": "ing",
+          "label": "HTTPS :443",
+          "variant": "emphasis"
+        },
+        {
+          "from": "tls",
+          "to": "ing",
+          "label": "certificat"
+        },
+        {
+          "from": "ing",
+          "to": "front",
+          "label": "/ → :8080",
+          "variant": "emphasis"
+        },
+        {
+          "from": "ing",
+          "to": "api",
+          "label": "/api → :3000",
+          "variant": "emphasis"
+        },
+        {
+          "from": "api",
+          "to": "pg",
+          "label": "TCP 5432",
+          "variant": "emphasis"
+        },
+        {
+          "from": "pg",
+          "to": "pvc",
+          "label": "volumeClaimTemplates"
+        },
+        {
+          "from": "smon",
+          "to": "api",
+          "label": "scrape /metrics"
+        },
+        {
+          "from": "svc",
+          "to": "api",
+          "label": "ClusterIP"
+        }
+      ],
+      "boundaries": [
+        {
+          "kind": "region",
+          "label": "Entrée et certificat TLS",
+          "wraps": [
+            "browser",
+            "ing",
+            "tls"
+          ],
+          "pad": 8
+        },
+        {
+          "kind": "region",
+          "label": "Namespace inventaire · workloads",
+          "wraps": [
+            "front",
+            "api",
+            "svc",
+            "pg",
+            "pvc"
+          ],
+          "pad": 8
+        },
+        {
+          "kind": "region",
+          "label": "Observabilité · découverte",
+          "wraps": [
+            "smon"
+          ],
+          "pad": 8
+        }
+      ],
+      "cards": [
+        {
+          "dot": "emerald",
+          "title": "Démonstrations vérifiées",
+          "items": [
+            "Helm : release inventaire déployée",
+            "Frontend 2/2 et API 2/2 Running, PostgreSQL 1/1",
+            "Application HTTPS inventaire.local avec 3 articles observés",
+            "TLS : certificat inventaire-tls Ready"
+          ]
+        },
+        {
+          "dot": "cyan",
+          "title": "Stockage persistant démontré",
+          "items": [
+            "PVC data-inventaire-postgres-0 Bound (1 Gio)",
+            "Suppression puis recréation du Pod postgres-0",
+            "Les articles test, test2 et Article TP4 - persistance sont conservés",
+            "Aucune sauvegarde externe démontrée (persistance ≠ backup)"
+          ]
+        }
+      ]
+    },
+    "operations": {
+      "schema_version": 1,
+      "diagram_type": "architecture",
+      "meta": {
+        "title": "TP4 · Sécurité, HPA et livraison",
+        "subtitle": "Contrôles RBAC, accès réseau, métriques, charge et rollback — état des preuves",
+        "output": "tp4-securite-hpa.html"
+      },
+      "components": [
+        {
+          "id": "ns",
+          "type": "security",
+          "label": "Namespace restricted",
+          "sublabel": "Pod Security Admission",
+          "pos": [
+            35,
+            35
+          ],
+          "size": [
+            240,
+            70
+          ]
+        },
+        {
+          "id": "rbac",
+          "type": "security",
+          "label": "Role lecteur",
+          "sublabel": "kubectl can-i : yes / no",
+          "pos": [
+            35,
+            170
+          ],
+          "size": [
+            240,
+            70
+          ]
+        },
+        {
+          "id": "pol",
+          "type": "security",
+          "label": "NetworkPolicies",
+          "sublabel": "deny-all + flux nécessaires",
+          "pos": [
+            35,
+            305
+          ],
+          "size": [
+            240,
+            70
+          ]
+        },
+        {
+          "id": "ing",
+          "type": "external",
+          "label": "Client de charge",
+          "sublabel": "HTTPS /api/cpu?ms=200",
+          "pos": [
+            390,
+            170
+          ],
+          "size": [
+            240,
+            70
+          ]
+        },
+        {
+          "id": "hpa",
+          "type": "cloud",
+          "label": "HPA API",
+          "sublabel": "CPU cible 60 % · 2–6 Pods",
+          "pos": [
+            390,
+            35
+          ],
+          "size": [
+            240,
+            70
+          ]
+        },
+        {
+          "id": "api",
+          "type": "backend",
+          "label": "API Inventaire",
+          "sublabel": "2 réplicas observés",
+          "pos": [
+            740,
+            170
+          ],
+          "size": [
+            225,
+            70
+          ]
+        },
+        {
+          "id": "prom",
+          "type": "backend",
+          "label": "Prometheus",
+          "sublabel": "Métriques CPU, règle latence",
+          "pos": [
+            1055,
+            30
+          ],
+          "size": [
+            240,
+            70
+          ]
+        },
+        {
+          "id": "loki",
+          "type": "database",
+          "label": "Loki / Fluent Bit",
+          "sublabel": "Logs /api/cpu confirmés",
+          "pos": [
+            1055,
+            170
+          ],
+          "size": [
+            240,
+            70
+          ]
+        },
+        {
+          "id": "helm",
+          "type": "cloud",
+          "label": "Helm releases",
+          "sublabel": "Upgrade puis rollback réussis",
+          "pos": [
+            740,
+            355
+          ],
+          "size": [
+            225,
+            70
+          ]
+        },
+        {
+          "id": "ci",
+          "type": "cloud",
+          "label": "GitHub Actions / GHCR",
+          "sublabel": "Pipeline à valider après push",
+          "pos": [
+            1055,
+            355
+          ],
+          "size": [
+            240,
+            70
+          ]
+        }
+      ],
+      "connections": [
+        {
+          "from": "ns",
+          "to": "api",
+          "label": "PSS restricted"
+        },
+        {
+          "from": "rbac",
+          "to": "api",
+          "label": "droits lecture sans Secret"
+        },
+        {
+          "from": "pol",
+          "to": "api",
+          "label": "filtrage"
+        },
+        {
+          "from": "ing",
+          "to": "api",
+          "label": "CPU load",
+          "variant": "emphasis"
+        },
+        {
+          "from": "hpa",
+          "to": "api",
+          "label": "autoscaling/v2"
+        },
+        {
+          "from": "api",
+          "to": "prom",
+          "label": "/metrics"
+        },
+        {
+          "from": "api",
+          "to": "loki",
+          "label": "logs stdout",
+          "variant": "emphasis"
+        },
+        {
+          "from": "helm",
+          "to": "api",
+          "label": "deployment / rollback",
+          "variant": "emphasis"
+        },
+        {
+          "from": "ci",
+          "to": "helm",
+          "label": "image + GitOps (prévu)"
+        }
+      ],
+      "boundaries": [
+        {
+          "kind": "region",
+          "label": "Namespace inventaire · sécurité",
+          "wraps": [
+            "ns",
+            "rbac",
+            "pol"
+          ],
+          "pad": 8
+        },
+        {
+          "kind": "region",
+          "label": "Exposition et montée en charge",
+          "wraps": [
+            "hpa",
+            "ing",
+            "api"
+          ],
+          "pad": 8
+        },
+        {
+          "kind": "region",
+          "label": "Monitoring et pipeline",
+          "wraps": [
+            "prom",
+            "loki",
+            "ci"
+          ],
+          "pad": 8
+        }
+      ],
+      "cards": [
+        {
+          "dot": "emerald",
+          "title": "Sécurité / exploitation vérifiées",
+          "items": [
+            "RBAC lecteur : autorisation lecture yes, refus no",
+            "Namespace restricted et workloads Running observés",
+            "Loki : logs des appels /api/cpu visibles",
+            "Helm upgrade à 3 frontends puis rollback à 2"
+          ]
+        },
+        {
+          "dot": "rose",
+          "title": "Tests en attente de démonstration",
+          "items": [
+            "HPA resté à 2 réplicas sur la capture (8 % puis 37 % CPU, cible 60 %)",
+            "Test réseau autorisé / bloqué non prouvé par la capture RBAC seule",
+            "Alerte TP4 FIRING non montrée",
+            "Workflow GitHub Actions Trivy / GHCR pas encore exécuté au moment des preuves"
+          ]
+        }
+      ]
     }
   },
   "images": [
@@ -1448,9 +1940,54 @@
       "group": "TP3",
       "name": "16 16 prometheus firing",
       "src": "assets/preuves/tp3/16-prometheus-firing.png"
+    },
+    {
+      "group": "TP4",
+      "name": "Précontrôle du cluster et supervision Running",
+      "src": "assets/preuves/tp4/01-cluster-preflight.png"
+    },
+    {
+      "group": "TP4",
+      "name": "Helm inventaire deployed · Pods API, frontend, PostgreSQL et certificat Ready",
+      "src": "assets/preuves/tp4/02-deploiement-helm.png"
+    },
+    {
+      "group": "TP4",
+      "name": "Inventaire accessible en HTTPS avec trois articles",
+      "src": "assets/preuves/tp4/03-application-https.png"
+    },
+    {
+      "group": "TP4",
+      "name": "Avant suppression de postgres-0 : articles et PVC Bound",
+      "src": "assets/preuves/tp4/04-persistance-avant.png"
+    },
+    {
+      "group": "TP4",
+      "name": "Après recréation de postgres-0 : articles conservés",
+      "src": "assets/preuves/tp4/05-persistance-apres.png"
+    },
+    {
+      "group": "TP4",
+      "name": "RBAC lecteur : can-i yes / no",
+      "src": "assets/preuves/tp4/06-rbac-lecteur.png"
+    },
+    {
+      "group": "TP4",
+      "name": "Charge HPA : CPU 8 % → 37 %, 2 réplicas (pas de scale-up confirmé)",
+      "src": "assets/preuves/tp4/07-hpa-charge.png"
+    },
+    {
+      "group": "TP4",
+      "name": "Loki : journaux /api/cpu retrouvés",
+      "src": "assets/preuves/tp4/08-loki-logs-cpu.png"
+    },
+    {
+      "group": "TP4",
+      "name": "Helm upgrade puis rollback : frontend 3 → 2 réplicas",
+      "src": "assets/preuves/tp4/09-helm-rollback.png"
     }
   ],
-  "project": "Kubernetes M2 Super Cloud · TP1 + TP2 + TP3",
+  "project": "Kubernetes M2 Super Cloud · TP1 + TP2 + TP3 + TP4",
   "date": "06 novembre 2026",
   "level": "Documentation de laboratoire fondée sur les résultats observés",
   "environment": [
@@ -1485,6 +2022,10 @@
     {
       "label": "Alerte TP3",
       "value": "5xx > 5 % · FIRING observé"
+    },
+    {
+      "label": "TP4",
+      "value": "Inventaire · Helm / PostgreSQL / HTTPS"
     }
   ],
   "tests": [
@@ -1593,16 +2134,92 @@
       "chaos.yaml",
       "alert-rules.yaml",
       "golden-signals.json"
+    ],
+    "TP4": [
+      "projet/app/server.js",
+      "projet/app/Dockerfile",
+      "projet/chart/inventaire/values.yaml",
+      "projet/chart/inventaire/values-prod.yaml",
+      "projet/chart/inventaire/templates/networkpolicy.yaml",
+      "projet/chart/inventaire/templates/servicemonitor.yaml",
+      "projet/chart/inventaire/templates/prometheusrule.yaml",
+      "projet/grafana/golden-signals-inventaire.json",
+      ".github/workflows/ci.yaml"
     ]
   },
   "notes": [
-    "Les sources de référence sont les manifests et comptes rendus des TP1, TP2 et TP3 ; aucune connexion live au cluster n’a été réalisée pour cet Atlas.",
+    "Les sources de référence sont les manifests et comptes rendus des TP1, TP2, TP3 et TP4 ; aucune connexion live au cluster n’a été réalisée pour cet Atlas.",
     "Le Pod « API » du TP1 est un générateur de logs BusyBox, distinct de l’API HTTP du TP2.",
     "Un test réussi sur TCP 3306 démontre une connectivité, pas des identifiants SQL valides.",
     "Les règles de cours autorisent le namespace ingress-nginx en entier sans limiter les ports : ce n’est pas une configuration de production.",
     "La suppression du Pod et du StatefulSet n’équivaut pas à une sauvegarde de données.",
     "TP3 : la vue est documentaire, fondée sur des captures du 6 novembre, sans requêtes directes aux API live depuis GitHub Pages.",
     "TP3 : l’alerte FIRING et sa réception Alertmanager sont prouvées ; l’état Resolved n’est pas attesté par capture dans le pack.",
-    "TP3 : la configuration Loki Monolithic est destinée à Kind, pas à une exploitation en production."
+    "TP3 : la configuration Loki Monolithic est destinée à Kind, pas à une exploitation en production.",
+    "TP4 : les preuves montrent HTTPS, la persistance du PVC PostgreSQL, le RBAC et le rollback Helm. Le scale-up HPA au-delà de deux réplicas n’est pas démontré.",
+    "TP4 : les tests réseau autorisé/bloqué, l’alerte spécifique à Inventaire et le workflow GitHub Actions ne sont pas validés par ces captures.",
+    "TP4 : les screenshots représentent un état de laboratoire daté, ils ne sont pas une surveillance en temps réel."
+  ],
+  "tp4Validations": [
+    {
+      "label": "Helm déployé",
+      "observed": "Release inventaire en statut deployed (révision 1)",
+      "state": "Confirmé",
+      "status": "success"
+    },
+    {
+      "label": "HTTPS / TLS",
+      "observed": "Page Inventaire et certificat inventaire-tls Ready",
+      "state": "Confirmé",
+      "status": "success"
+    },
+    {
+      "label": "Persistance PostgreSQL",
+      "observed": "Article conservé après suppression puis recréation du Pod",
+      "state": "Confirmé",
+      "status": "success"
+    },
+    {
+      "label": "RBAC lecteur",
+      "observed": "Lecture autorisée, opération interdite refusée",
+      "state": "Confirmé",
+      "status": "success"
+    },
+    {
+      "label": "Logs Loki",
+      "observed": "Logs /api/cpu visibles dans Grafana Explore",
+      "state": "Confirmé",
+      "status": "success"
+    },
+    {
+      "label": "Helm rollback",
+      "observed": "Frontend 3 → 2 réplicas, révision 3 deployed",
+      "state": "Confirmé",
+      "status": "success"
+    },
+    {
+      "label": "HPA > 2 Pods",
+      "observed": "Capture : CPU 37 % / cible 60 %, 2 réplicas",
+      "state": "Non démontré",
+      "status": "pending"
+    },
+    {
+      "label": "NetworkPolicies",
+      "observed": "Pas de capture des flux autorisés et bloqués",
+      "state": "À prouver",
+      "status": "pending"
+    },
+    {
+      "label": "Alerte TP4 FIRING",
+      "observed": "Aucune capture spécifique au TP4",
+      "state": "À prouver",
+      "status": "pending"
+    },
+    {
+      "label": "GitHub Actions / GHCR",
+      "observed": "Publication du code et exécution du pipeline à effectuer",
+      "state": "À prouver",
+      "status": "pending"
+    }
   ]
 }

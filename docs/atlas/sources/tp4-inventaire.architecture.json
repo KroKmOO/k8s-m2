@@ -1,0 +1,237 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "TP4 · Application Inventaire",
+    "subtitle": "Architecture 3 tiers en HTTPS — Helm, PostgreSQL et services Kubernetes",
+    "output": "tp4-inventaire.html"
+  },
+  "components": [
+    {
+      "id": "browser",
+      "type": "external",
+      "label": "Navigateur Windows",
+      "sublabel": "inventaire.local · HTTPS",
+      "pos": [
+        25,
+        170
+      ],
+      "size": [
+        205,
+        70
+      ]
+    },
+    {
+      "id": "ing",
+      "type": "security",
+      "label": "Ingress Nginx",
+      "sublabel": "cert-manager · TLS selfsigned",
+      "pos": [
+        305,
+        170
+      ],
+      "size": [
+        250,
+        70
+      ]
+    },
+    {
+      "id": "front",
+      "type": "frontend",
+      "label": "Frontend Nginx",
+      "sublabel": "2 réplicas · port 8080",
+      "pos": [
+        645,
+        48
+      ],
+      "size": [
+        250,
+        70
+      ]
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "API Node.js",
+      "sublabel": "2 Pods Ready · port 3000",
+      "pos": [
+        645,
+        250
+      ],
+      "size": [
+        250,
+        70
+      ]
+    },
+    {
+      "id": "svc",
+      "type": "cloud",
+      "label": "Service API",
+      "sublabel": "ClusterIP /api",
+      "pos": [
+        645,
+        380
+      ],
+      "size": [
+        250,
+        70
+      ]
+    },
+    {
+      "id": "pg",
+      "type": "database",
+      "label": "PostgreSQL 16",
+      "sublabel": "StatefulSet · 1 réplique",
+      "pos": [
+        1015,
+        250
+      ],
+      "size": [
+        240,
+        70
+      ]
+    },
+    {
+      "id": "pvc",
+      "type": "database",
+      "label": "PVC PostgreSQL",
+      "sublabel": "1 Gio Bound, mêmes données",
+      "pos": [
+        1015,
+        382
+      ],
+      "size": [
+        240,
+        70
+      ]
+    },
+    {
+      "id": "tls",
+      "type": "security",
+      "label": "Certificat TLS",
+      "sublabel": "inventaire-tls · Ready",
+      "pos": [
+        325,
+        48
+      ],
+      "size": [
+        210,
+        70
+      ]
+    },
+    {
+      "id": "smon",
+      "type": "cloud",
+      "label": "ServiceMonitor",
+      "sublabel": "/metrics · toutes 15 s",
+      "pos": [
+        1015,
+        48
+      ],
+      "size": [
+        240,
+        70
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "from": "browser",
+      "to": "ing",
+      "label": "HTTPS :443",
+      "variant": "emphasis"
+    },
+    {
+      "from": "tls",
+      "to": "ing",
+      "label": "certificat"
+    },
+    {
+      "from": "ing",
+      "to": "front",
+      "label": "/ → :8080",
+      "variant": "emphasis"
+    },
+    {
+      "from": "ing",
+      "to": "api",
+      "label": "/api → :3000",
+      "variant": "emphasis"
+    },
+    {
+      "from": "api",
+      "to": "pg",
+      "label": "TCP 5432",
+      "variant": "emphasis"
+    },
+    {
+      "from": "pg",
+      "to": "pvc",
+      "label": "volumeClaimTemplates"
+    },
+    {
+      "from": "smon",
+      "to": "api",
+      "label": "scrape /metrics"
+    },
+    {
+      "from": "svc",
+      "to": "api",
+      "label": "ClusterIP"
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Entrée et certificat TLS",
+      "wraps": [
+        "browser",
+        "ing",
+        "tls"
+      ],
+      "pad": 8
+    },
+    {
+      "kind": "region",
+      "label": "Namespace inventaire · workloads",
+      "wraps": [
+        "front",
+        "api",
+        "svc",
+        "pg",
+        "pvc"
+      ],
+      "pad": 8
+    },
+    {
+      "kind": "region",
+      "label": "Observabilité · découverte",
+      "wraps": [
+        "smon"
+      ],
+      "pad": 8
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Démonstrations vérifiées",
+      "items": [
+        "Helm : release inventaire déployée",
+        "Frontend 2/2 et API 2/2 Running, PostgreSQL 1/1",
+        "Application HTTPS inventaire.local avec 3 articles observés",
+        "TLS : certificat inventaire-tls Ready"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Stockage persistant démontré",
+      "items": [
+        "PVC data-inventaire-postgres-0 Bound (1 Gio)",
+        "Suppression puis recréation du Pod postgres-0",
+        "Les articles test, test2 et Article TP4 - persistance sont conservés",
+        "Aucune sauvegarde externe démontrée (persistance ≠ backup)"
+      ]
+    }
+  ]
+}

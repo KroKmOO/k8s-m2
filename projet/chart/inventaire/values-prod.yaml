@@ -1,0 +1,13 @@
+# Exemple de surcharge pour un environnement mieux dimensionné.
+# Ne pas appliquer automatiquement dans le laboratoire Kind.
+frontend:
+  replicas: 3
+api:
+  autoscaling:
+    minReplicas: 3
+    maxReplicas: 6
+  resources:
+    requests: {cpu: 200m, memory: 128Mi}
+    limits: {cpu: "1", memory: 512Mi}
+ingress:
+  host: inventaire.exemple.invalid

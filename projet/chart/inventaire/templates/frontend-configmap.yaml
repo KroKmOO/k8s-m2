@@ -1,0 +1,54 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "inventaire.fullname" . }}-frontend
+  labels:
+    {{- include "inventaire.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+data:
+  index.html: |
+    <!doctype html>
+    <html lang="fr">
+    <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Inventaire</title></head>
+    <body style="font-family: sans-serif; max-width: 640px; margin: 40px auto; padding: 0 15px">
+      <h1>Inventaire</h1>
+      <form id="f">
+        <input id="nom" placeholder="Nouvel article" required>
+        <button>Ajouter</button>
+      </form>
+      <p id="msg" role="status"></p>
+      <ul id="liste"></ul>
+      <script>
+        async function charger() {
+          const r = await fetch('/api/items');
+          if (!r.ok) throw new Error('Lecture impossible');
+          const items = await r.json();
+          const liste = document.getElementById('liste');
+          liste.innerHTML = '';
+          for (const i of items) {
+            const li = document.createElement('li');
+            li.textContent = i.nom;
+            liste.appendChild(li);
+          }
+        }
+        document.getElementById('f').onsubmit = async (e) => {
+          e.preventDefault();
+          try {
+            const nom = document.getElementById('nom').value;
+            const response = await fetch('/api/items', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ nom })
+            });
+            if (!response.ok) throw new Error('Enregistrement impossible');
+            document.getElementById('nom').value = '';
+            document.getElementById('msg').textContent = 'Article ajoute.';
+            await charger();
+          } catch (error) {
+            document.getElementById('msg').textContent = error.message;
+          }
+        };
+        charger().catch(e => { document.getElementById('msg').textContent = e.message; });
+      </script>
+    </body>
+    </html>

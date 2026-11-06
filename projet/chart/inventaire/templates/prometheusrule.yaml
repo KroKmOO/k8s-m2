@@ -1,0 +1,25 @@
+{{- if .Values.monitoring.prometheusRule.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "inventaire.fullname" . }}-latency
+  labels:
+    {{- include "inventaire.labels" . | nindent 4 }}
+    release: monitoring
+spec:
+  groups:
+  - name: inventaire.api.rules
+    rules:
+    - alert: InventaireApiLatenceElevee
+      expr: |
+        histogram_quantile(0.95,
+          sum by (le) (rate(http_request_duration_seconds_bucket{
+            namespace="{{ .Release.Namespace }}",service="{{ include "inventaire.fullname" . }}-api"}[2m])))
+        > {{ .Values.monitoring.prometheusRule.latencyThresholdSeconds }}
+      for: {{ .Values.monitoring.prometheusRule.for }}
+      labels:
+        severity: warning
+      annotations:
+        summary: "Latence p95 elevee de l'API Inventaire"
+        description: "p95 > {{ .Values.monitoring.prometheusRule.latencyThresholdSeconds }} secondes pendant {{ .Values.monitoring.prometheusRule.for }}"
+{{- end }}

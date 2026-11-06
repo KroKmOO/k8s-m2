@@ -1,0 +1,104 @@
+# Defense en profondeur : deny-all, DNS, controller nginx, metrics prometheus, API vers Postgres.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "inventaire.fullname" . }}-deny-all
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "inventaire.fullname" . }}-dns
+spec:
+  podSelector: {}
+  policyTypes: [Egress]
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+    ports:
+    - {protocol: UDP, port: 53}
+    - {protocol: TCP, port: 53}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "inventaire.fullname" . }}-from-ingress
+spec:
+  podSelector:
+    matchExpressions:
+    - {key: app.kubernetes.io/component, operator: In, values: [frontend, api]}
+  policyTypes: [Ingress]
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: ingress-nginx
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/component: controller
+    ports:
+    - {protocol: TCP, port: 8080}
+    - {protocol: TCP, port: 3000}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "inventaire.fullname" . }}-api-to-postgres
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "inventaire.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: api
+  policyTypes: [Egress]
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          {{- include "inventaire.selectorLabels" . | nindent 10 }}
+          app.kubernetes.io/component: postgres
+    ports: [{protocol: TCP, port: 5432}]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "inventaire.fullname" . }}-postgres-from-api
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "inventaire.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: postgres
+  policyTypes: [Ingress]
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          {{- include "inventaire.selectorLabels" . | nindent 10 }}
+          app.kubernetes.io/component: api
+    ports: [{protocol: TCP, port: 5432}]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "inventaire.fullname" . }}-prometheus-to-api
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "inventaire.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: api
+  policyTypes: [Ingress]
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: monitoring
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: prometheus
+    ports: [{protocol: TCP, port: 3000}]

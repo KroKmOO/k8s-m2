@@ -199,3 +199,15 @@ La documentation interactive est un **portail HTML autonome** élaboré à parti
 ---
 
 **Accès rapide :** [Documentation interactive](https://krokmoo.github.io/k8s-m2/atlas/) · [TP1](tp1/README.md) · [TP2](tp2/README.md) · [TP3](tp3/README.md) · [Preuves](docs/atlas/assets/preuves/)
+
+<!-- atlas-tp4-start -->
+
+### TP4 — Projet final : Inventaire
+
+L'application trois tiers **Inventaire** (Nginx, Node.js, PostgreSQL) a été déployée en HTTPS à l'aide de Helm sur le cluster Kind. La persistance sur PVC, le RBAC, la collecte Loki et le rollback Helm sont documentés. La montée effective du HPA, la CI et certains tests d'alerting/réseau restent à confirmer.
+
+- [Projet, chart Helm, scripts et workflow](projet/)
+- [Validations terrain et captures](projet/VALIDATIONS_TERRAIN.md)
+- [Archify Atlas : vues TP1 à TP4](https://krokmoo.github.io/k8s-m2/atlas/)
+
+<!-- atlas-tp4-end -->

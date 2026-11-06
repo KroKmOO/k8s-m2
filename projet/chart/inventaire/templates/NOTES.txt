@@ -1,0 +1,4 @@
+Inventaire : {{ .Release.Name }} (namespace {{ .Release.Namespace }})
+  HTTPS : https://{{ .Values.ingress.host }}
+  API   : https://{{ .Values.ingress.host }}/api/items
+  Les secrets PostgreSQL sont crees hors du chart.

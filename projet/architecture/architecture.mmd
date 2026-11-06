@@ -1,0 +1,13 @@
+flowchart LR
+  Client["Navigateur client"] -->|"HTTPS / et /api"| Ingress["Ingress Nginx + TLS cert-manager"]
+  Ingress -->|":8080 /"| Frontend["2 Pods Nginx frontend"]
+  Ingress -->|":3000 /api"| API["2 à 6 Pods Node.js API / HPA"]
+  API -->|"TCP 5432"| DB[("PostgreSQL StatefulSet + PVC 1Gi")]
+  Prometheus["Prometheus ServiceMonitor"] -->|"GET /metrics 3000"| API
+  FluentBit["Fluent Bit DaemonSet"] --> Loki["Loki logs"]
+  API -.logs.-> FluentBit
+  Grafana["Grafana Golden Signals"] --> Prometheus
+  Grafana --> Loki
+  HPA["metrics-server"] -.CPU.-> API
+  CI["GitHub Actions Trivy GHCR"] -->|"tag values.yaml"| Helm["Helm chart inventaire"]
+  Helm -.deploie.-> API

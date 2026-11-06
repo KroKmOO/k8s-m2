@@ -33,3 +33,8 @@ Cet atlas documente les **TP1, TP2 et TP3** du programme M2 Super Cloud. Les vue
 ## Addendum TP3 — 6 novembre 2026
 
 Les vues TP3 ont été ajoutées à partir des sorties et captures fournies dans la conversation. Les mesures reportées (1,86 → 7,17 req/s, 72,34 % HTTP 5xx, API 2/2 UP, alerte FIRING reçue par Alertmanager) sont ponctuelles et vérifiables par les fichiers `tp3/preuves/`. Les sources IR de TP3 sont destinées à Archify et non validées par exécution native du moteur dans cette session. La génération du portail HTML est autonome, sans lien en direct avec un cluster.
+
+
+## Mise à jour TP4
+
+Date : 06/11/2026. Neuf captures fournies lors du compte rendu de séance (fichiers `image(20261106-201621).png` à `image(20261106-202425).png`). Aucune preuve d’exécution du pipeline CI GitHub Actions ou d’un autoscaling supérieur à deux réplicas n’était disponible au moment de la préparation. La vue distingue explicitement ces limites.

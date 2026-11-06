@@ -1,0 +1,53 @@
+frontend:
+  replicas: 2
+  image:
+    repository: nginxinc/nginx-unprivileged
+    tag: "1.27-alpine"
+    pullPolicy: IfNotPresent
+  resources:
+    requests: {cpu: 25m, memory: 32Mi}
+    limits: {cpu: 250m, memory: 128Mi}
+api:
+  image:
+    repository: ghcr.io/krokmoo/inventaire-api
+    tag: "dev"
+    pullPolicy: IfNotPresent
+  replicas: 2
+  resources:
+    requests: {cpu: 100m, memory: 128Mi}
+    limits: {cpu: "1", memory: 256Mi}
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 6
+    targetCPUUtilizationPercentage: 60
+  pdb:
+    minAvailable: 1
+postgres:
+  image:
+    repository: postgres
+    tag: "16"
+    pullPolicy: IfNotPresent
+  replicas: 1
+  database: inventaire
+  user: inventaire
+  existingSecret: inventaire-postgres-auth
+  storage: 1Gi
+  storageClassName: standard
+  resources:
+    requests: {cpu: 50m, memory: 128Mi}
+    limits: {cpu: 500m, memory: 512Mi}
+ingress:
+  enabled: true
+  host: inventaire.local
+  className: nginx
+  clusterIssuer: selfsigned
+  tlsSecretName: inventaire-tls
+monitoring:
+  serviceMonitor:
+    enabled: true
+    interval: 15s
+  prometheusRule:
+    enabled: true
+    latencyThresholdSeconds: 0.18
+    for: 1m

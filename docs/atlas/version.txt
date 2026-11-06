@@ -1,6 +1,1 @@
-Archify Atlas Kubernetes M2 Super Cloud
-Release: atlas-tp3-v3-20261106
-Vues: 6 (TP1: 2, TP2: 2, TP3: 2)
-Captures documentaires: 40
-Origine: repository KroKmOO/k8s-m2, branche main, dossier docs
-Note: ce marqueur de publication ne prouve pas l'etat temps reel du cluster.
+atlas-tp4-v4-20261106
