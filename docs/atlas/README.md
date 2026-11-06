@@ -39,11 +39,11 @@ Copier **le dossier `docs/`** à la racine de `~/k8s-m2/` :
 ```bash
 cd ~/k8s-m2
 git add docs/atlas/
-git commit -m "Documentation Atlas : architecture et preuves TP1 TP2"
+git commit -m "Documentation Atlas : architecture et preuves TP1 TP2 TP3"
 git push
 ```
 
-Le portail ne remplace pas les fichiers `tp1/` et `tp2/` exigés par la formatrice. Conserver également leurs README et les sorties de tests d’origine.
+Le portail ne remplace pas les fichiers `tp1/`, `tp2/` et `tp3/` exigés par la formatrice. Conserver également leurs README et les sorties de tests d’origine.
 
 ## Limites et provenance
 

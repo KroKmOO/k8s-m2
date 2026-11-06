@@ -2,7 +2,7 @@
 
 ## Périmètre
 
-Cet atlas porte uniquement sur les TP1 et TP2 du programme M2 Super Cloud. TP3 (Prometheus, Grafana, Loki) et TP4 (Inventaire/Helm/CI) sont hors périmètre ; ils ne sont pas représentés comme déployés.
+Cet atlas documente les **TP1, TP2 et TP3** du programme M2 Super Cloud. Les vues TP3 couvrent Prometheus, Grafana, Loki, Fluent Bit et Alertmanager. Le TP4 ne fait pas encore partie du périmètre documenté. Toutes les vues sont des reconstructions de laboratoire, sans liaison directe aux clusters Kubernetes.
 
 ## Résultats observés
 
@@ -27,7 +27,8 @@ Cet atlas porte uniquement sur les TP1 et TP2 du programme M2 Super Cloud. TP3 (
 
 - TP1 : `tp1/kind-config.yaml`, `mysql.yaml`, `mysql-config.yaml`, `api-sidecar.yaml`, `README.md`.
 - TP2 : `tp2/values-ingress.yaml`, `apps.yaml`, `ingress.yaml`, `issuer.yaml`, `np-01` à `np-06`, `README.md`.
-- Résultats : `tp1/etat-final.txt`, `tp2/tls-test.txt`, captures reprises sous `assets/preuves/`.
+- TP3 : `tp3/api-tp3.yaml`, `servicemonitor.yaml`, `values-monitoring.yaml`, `values-loki.yaml`, `values-fluent-bit.yaml`, `alert-rules.yaml`, `chaos.yaml`, `golden-signals.json`, `README.md`.
+- Résultats : `tp1/etat-final.txt`, `tp2/tls-test.txt`, `tp3/preuves/`, captures reprises sous `assets/preuves/`.
 
 ## Addendum TP3 — 6 novembre 2026
 
