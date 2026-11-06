@@ -3,9 +3,10 @@
 **Travaux pratiques d'administration, d'orchestration et de sécurisation d'applications avec Kubernetes.**  
 Environnement local réalisé sous **Windows / Ubuntu WSL2 / Docker Desktop / Kind**, dans le cadre du cursus M2 Super Cloud.
 
-[**Explorer la documentation interactive Archify Atlas**](https://krokmoo.github.io/k8s-m2/atlas/) · [**Consulter le TP1**](tp1/README.md) · [**Consulter le TP2**](tp2/README.md) · [**Voir les preuves**](docs/atlas/assets/preuves/) · [**Sources d'architecture**](docs/atlas/sources/)
 
-[![Aperçu du portail Archify Atlas : Kubernetes M2, documentation des TP1 et TP2](docs/atlas/assets/readme/atlas-accueil.webp)](https://krokmoo.github.io/k8s-m2/atlas/)
+[**Explorer la documentation interactive Archify Atlas**](https://krokmoo.github.io/k8s-m2/atlas/) · [**Consulter le TP1**](tp1/README.md) · [**Consulter le TP2**](tp2/README.md) · [**Consulter le TP3**](tp3/README.md) · [**Voir les preuves**](docs/atlas/assets/preuves/) · [**Sources d'architecture**](docs/atlas/sources/)
+
+[![Aperçu du portail Archify Atlas : Kubernetes M2, documentation des TP1, TP2 et TP3](docs/atlas/assets/readme/atlas-accueil.webp)](https://krokmoo.github.io/k8s-m2/atlas/)
 
 > **Documentation interactive :** cliquez sur l'image pour ouvrir le portail Archify Atlas publié sur GitHub Pages. Le site propose des schémas explorables, une matrice de validation et une galerie de captures. Il s'agit d'une **reconstitution documentaire** de l'environnement testé, et non d'un accès en temps réel au cluster.
 
@@ -19,14 +20,14 @@ Ce dépôt rassemble les **configurations Kubernetes**, les **résultats des exp
 |:--|:--|:--|:--|
 | **TP1** | Kind, Pods, Deployments, StatefulSet, Sidecar | **Terminé** | [Compte rendu](tp1/README.md) · [Manifestes et tests](tp1/) |
 | **TP2** | Ingress, TLS, cert-manager, NetworkPolicies | **Terminé** | [Compte rendu](tp2/README.md) · [Manifestes et tests](tp2/) |
-| **TP3** | Prometheus, Grafana, Loki | **À réaliser** | Ajout ultérieur |
+| **TP3** | Prometheus, Grafana, Loki, Fluent Bit, Alertmanager | **Terminé (tests observés)** | [Compte rendu + 11 réponses](tp3/README.md) · [Dashboard](tp3/golden-signals.json) · [Preuves](tp3/preuves/) |
 | **TP4** | Application trois tiers, Helm, sécurité et CI/CD | **À réaliser** | Projet final à venir |
 
-Les TP1 et TP2 ont été réalisés sur le **même cluster Kind `m2-k8s`**, conformément au déroulement du cours.
+Les TP1, TP2 et TP3 ont été réalisés sur le **même cluster Kind `m2-k8s`**, conformément au déroulement du cours.
 
 ## Architecture en images
 
-Les vues suivantes sont des **captures du portail interactif**. Cliquez sur n'importe quelle image pour ouvrir l'Atlas et sélectionner la rubrique correspondante dans le menu latéral.
+Les vues suivantes sont des **captures du portail interactif**, complétées par de véritables captures Grafana du TP3. Cliquez sur n'importe quelle image pour ouvrir l'Atlas et sélectionner la rubrique correspondante dans le menu latéral.
 
 | TP1 — Cluster Kind et réseau Calico | TP1 — MySQL, stockage et logs |
 |:--:|:--:|
@@ -34,7 +35,11 @@ Les vues suivantes sont des **captures du portail interactif**. Cliquez sur n'im
 | **TP2 — Ingress HTTP(S) et certificats TLS** | **TP2 — NetworkPolicies et Zero Trust** |
 | [![Ingress Nginx, cert-manager, frontend et API](docs/atlas/assets/readme/atlas-ingress-tls.webp)](https://krokmoo.github.io/k8s-m2/atlas/) | [![Règles de segmentation et flux réseau autorisés ou bloqués](docs/atlas/assets/readme/atlas-zero-trust.webp)](https://krokmoo.github.io/k8s-m2/atlas/) |
 
-**Portail complet :** [krokmoo.github.io/k8s-m2/atlas](https://krokmoo.github.io/k8s-m2/atlas/) — schémas navigables, détails des composants, tableaux de tests et captures de séance.
+| TP3 — Dashboard Golden Signals pendant le chaos | TP3 — Alerte Prometheus FIRING |
+|:--:|:--:|
+| [![Dashboard Grafana : 72,34 % HTTP 5xx avec API 2/2 UP](docs/atlas/assets/readme/atlas-tp3-dashboard.webp)](https://krokmoo.github.io/k8s-m2/atlas/) | [![Alerte ApiTauxErreursEleve en état FIRING dans Prometheus](docs/atlas/assets/readme/atlas-tp3-firing.webp)](https://krokmoo.github.io/k8s-m2/atlas/) |
+
+**Portail complet (TP1, TP2 et TP3) :** [krokmoo.github.io/k8s-m2/atlas](https://krokmoo.github.io/k8s-m2/atlas/) — schémas navigables, détails des composants, tableaux de tests et captures de séance.
 
 ## Environnement technique
 
@@ -95,6 +100,20 @@ Le deuxième TP ajoute une couche d'exposition et de contrôle des communication
 
 Le [README du TP2](tp2/README.md) regroupe le tableau des tests et les **8 réponses aux questions** du sujet.
 
+## TP3 — Observabilité, logs et alertes
+
+Le troisième TP ajoute une plateforme complète d'**observabilité** autour de l'API instrumentée `podinfo` : **kube-prometheus-stack**, **ServiceMonitor**, **Grafana**, **Loki monolithique**, **Fluent Bit en DaemonSet**, **PrometheusRule** et **Alertmanager**.
+
+- **Cibles API :** 2/2 `UP`, metrics `/metrics` scrappées toutes les 15 secondes.
+- **Montée en charge :** 1,86 → **7,17 requêtes/s** après passage de 1 à 5 générateurs (×3,85).
+- **Latence p95 :** 2,29 s en configuration initiale et 2,34 s sous charge.
+- **Logs :** Fluent Bit **3/3 nœuds** (tolérance control-plane), Loki avec PVC 2 Gio ; événements `ERROR` retrouvés via LogQL.
+- **Incident :** simulation d'erreurs HTTP 500, **72,34 %** d'erreurs malgré **2/2 API UP** ; alerte `ApiTauxErreursEleve` en état **FIRING**, visible dans Alertmanager.
+
+[Lire le compte rendu détaillé et les **11 réponses**](tp3/README.md) · [Importer le dashboard Grafana complet](tp3/golden-signals.json) · [Captures de preuve](tp3/preuves/) · [PromQL](tp3/promql.md) · [LogQL](tp3/logql.md) · [Explorer les vues TP3 dans Atlas](https://krokmoo.github.io/k8s-m2/atlas/)
+
+> **Point important :** la documentation GitHub Pages affiche des diagrammes et captures statiques, pas la télémétrie en direct. Le dashboard Grafana devient interactif après import dans un Grafana connecté aux datasources Prometheus et Loki.
+
 ## Structure du dépôt
 
 ```text
@@ -116,6 +135,14 @@ k8s-m2/
 │   ├── values-ingress.yaml
 │   ├── np-*.yaml               # Règles réseau
 │   └── *.txt                   # Tests HTTP et TLS
+├── tp3/
+│   ├── README.md               # Compte rendu et 11 réponses
+│   ├── values-*.yaml           # Helm Monitoring, Loki, Fluent Bit
+│   ├── api-tp3.yaml, chaos.yaml
+│   ├── servicemonitor.yaml, alert-rules.yaml
+│   ├── golden-signals.json     # Dashboard Grafana Prometheus + Loki
+│   ├── promql.md, logql.md
+│   └── preuves/                # 16 captures de TP3
 └── docs/
     ├── index.html             # Accueil GitHub Pages → Atlas
     └── atlas/
@@ -123,15 +150,15 @@ k8s-m2/
         ├── atlas-data.json
         ├── README.md
         ├── PROVENANCE.md
-        ├── sources/            # 4 modèles d'architecture JSON
+        ├── sources/            # 6 modèles d'architecture JSON
         └── assets/
             ├── readme/        # Aperçus intégrés à ce README
-            └── preuves/       # Captures des TP1 et TP2
+            └── preuves/       # Captures des TP1, TP2 et TP3
 ```
 
 ## Consulter les rendus
 
-**Sans installer Kubernetes :** consultez [le portail Archify Atlas](https://krokmoo.github.io/k8s-m2/atlas/) ou les [README de TP1](tp1/README.md) et [TP2](tp2/README.md). Tous les fichiers nécessaires à la lecture sont présents dans ce dépôt.
+**Sans installer Kubernetes :** consultez [le portail Archify Atlas](https://krokmoo.github.io/k8s-m2/atlas/) ou les [README de TP1](tp1/README.md) [TP2](tp2/README.md) et [TP3](tp3/README.md). Tous les fichiers nécessaires à la lecture sont présents dans ce dépôt.
 
 **En local :** pour servir le site depuis le dossier du dépôt :
 
@@ -152,6 +179,8 @@ kubectl get nodes -o wide
 kubectl get all,pvc -n tp1
 kubectl get pods,svc,ingress,networkpolicy -n tp2
 kubectl get certificate -n tp2
+kubectl get pods,svc,servicemonitor,prometheusrule -n tp3
+kubectl get pods,daemonset,pvc -n monitoring
 ```
 
 Ces commandes nécessitent un cluster local déjà configuré ; elles ne fonctionnent pas à distance depuis GitHub Pages.
@@ -160,13 +189,13 @@ Ces commandes nécessitent un cluster local déjà configuré ; elles ne fonctio
 
 ## À propos d'Archify Atlas
 
-La documentation interactive est un **portail HTML autonome** élaboré à partir des manifestes, des énoncés et des preuves de séance. Les fichiers `docs/atlas/sources/*.architecture.json` sont des sources d'architecture destinées au moteur [Archify](https://github.com/tt-a1i/archify). **Le portail actuel n'est pas un export natif produit et validé par le moteur Archify** : les sources JSON devront être validées et rendues avec celui-ci pour générer des sorties natives. Les captures montrent l'état **documenté du 5 novembre 2026**, pas une télémétrie en direct.
+La documentation interactive est un **portail HTML autonome** élaboré à partir des manifestes, des énoncés et des preuves de séance des trois TP. Les fichiers `docs/atlas/sources/*.architecture.json` sont des sources d'architecture destinées au moteur [Archify](https://github.com/tt-a1i/archify). **Le portail actuel n'est pas un export natif produit et validé par le moteur Archify** : les sources JSON devront être validées et rendues avec celui-ci pour générer des sorties natives. Les captures montrent les états **documentés des 5 et 6 novembre 2026**, pas une télémétrie en direct.
 
 ## Auteur et suite des travaux
 
 **Dylan Cailleau** · [GitHub @KroKmOO](https://github.com/KroKmOO)  
-**Prochaines étapes :** TP3 (Prometheus, Grafana, Loki), puis TP4 (projet final Helm / CI-CD).
+**Prochaine étape :** TP4 (projet final Helm / CI-CD).
 
 ---
 
-**Accès rapide :** [Documentation interactive](https://krokmoo.github.io/k8s-m2/atlas/) · [TP1](tp1/README.md) · [TP2](tp2/README.md) · [Preuves](docs/atlas/assets/preuves/)
+**Accès rapide :** [Documentation interactive](https://krokmoo.github.io/k8s-m2/atlas/) · [TP1](tp1/README.md) · [TP2](tp2/README.md) · [TP3](tp3/README.md) · [Preuves](docs/atlas/assets/preuves/)

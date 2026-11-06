@@ -28,3 +28,7 @@ Cet atlas porte uniquement sur les TP1 et TP2 du programme M2 Super Cloud. TP3 (
 - TP1 : `tp1/kind-config.yaml`, `mysql.yaml`, `mysql-config.yaml`, `api-sidecar.yaml`, `README.md`.
 - TP2 : `tp2/values-ingress.yaml`, `apps.yaml`, `ingress.yaml`, `issuer.yaml`, `np-01` à `np-06`, `README.md`.
 - Résultats : `tp1/etat-final.txt`, `tp2/tls-test.txt`, captures reprises sous `assets/preuves/`.
+
+## Addendum TP3 — 6 novembre 2026
+
+Les vues TP3 ont été ajoutées à partir des sorties et captures fournies dans la conversation. Les mesures reportées (1,86 → 7,17 req/s, 72,34 % HTTP 5xx, API 2/2 UP, alerte FIRING reçue par Alertmanager) sont ponctuelles et vérifiables par les fichiers `tp3/preuves/`. Les sources IR de TP3 sont destinées à Archify et non validées par exécution native du moteur dans cette session. La génération du portail HTML est autonome, sans lien en direct avec un cluster.

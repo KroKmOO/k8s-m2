@@ -1,0 +1,19 @@
+# Un agent de collecte par nœud Kind, y compris control-plane NoSchedule
+config:
+  outputs: |
+    [OUTPUT]
+        Name                  loki
+        Match                 kube.*
+        Host                  loki.monitoring.svc.cluster.local
+        Port                  3100
+        Labels                job=fluent-bit,namespace=$kubernetes['namespace_name'],pod=$kubernetes['pod_name'],container=$kubernetes['container_name']
+        Auto_Kubernetes_Labels On
+        Retry_Limit           False
+
+tolerations:
+  - key: node-role.kubernetes.io/control-plane
+    operator: Exists
+    effect: NoSchedule
+  - key: node-role.kubernetes.io/master
+    operator: Exists
+    effect: NoSchedule

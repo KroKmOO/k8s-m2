@@ -1,0 +1,24 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: api-alerts
+  namespace: tp3
+  labels:
+    release: monitoring
+spec:
+  groups:
+    - name: api.rules
+      rules:
+        - alert: ApiTauxErreursEleve
+          expr: |
+            (
+              sum(rate(http_request_duration_seconds_count{namespace="tp3",status=~"5.."}[2m]))
+              /
+              sum(rate(http_request_duration_seconds_count{namespace="tp3"}[2m]))
+            ) > 0.05
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Taux d'erreurs 5xx de l'API au-dessus de 5 %"
+            description: "Le taux d'erreurs HTTP 5xx de l'API TP3 dépasse le seuil de 5 %."

@@ -795,6 +795,457 @@
           ]
         }
       ]
+    },
+    "metrics": {
+      "schema_version": 1,
+      "diagram_type": "architecture",
+      "meta": {
+        "title": "TP3 · Métriques & Golden Signals",
+        "subtitle": "API podinfo, ServiceMonitor, Prometheus et dashboards Grafana",
+        "output": "tp3-metrics.html"
+      },
+      "components": [
+        {
+          "id": "traffic",
+          "type": "external",
+          "label": "Générateur trafic",
+          "sublabel": "BusyBox · 1 → 5 Pods",
+          "pos": [
+            40,
+            110
+          ],
+          "size": [
+            205,
+            67
+          ]
+        },
+        {
+          "id": "chaos",
+          "type": "external",
+          "label": "Générateur chaos",
+          "sublabel": "/status/500 · HTTP 5xx",
+          "pos": [
+            40,
+            310
+          ],
+          "size": [
+            205,
+            67
+          ]
+        },
+        {
+          "id": "svc",
+          "type": "cloud",
+          "label": "Service API",
+          "sublabel": "tp3 / api:9898",
+          "pos": [
+            345,
+            195
+          ],
+          "size": [
+            216,
+            67
+          ]
+        },
+        {
+          "id": "podinfo",
+          "type": "backend",
+          "label": "Podinfo ×2",
+          "sublabel": "/metrics · histogramme HTTP",
+          "pos": [
+            655,
+            195
+          ],
+          "size": [
+            245,
+            67
+          ]
+        },
+        {
+          "id": "sm",
+          "type": "security",
+          "label": "ServiceMonitor",
+          "sublabel": "tp3 · path /metrics · 15 s",
+          "pos": [
+            665,
+            45
+          ],
+          "size": [
+            225,
+            67
+          ]
+        },
+        {
+          "id": "prom",
+          "type": "backend",
+          "label": "Prometheus",
+          "sublabel": "namespace monitoring",
+          "pos": [
+            1005,
+            60
+          ],
+          "size": [
+            225,
+            67
+          ]
+        },
+        {
+          "id": "dash",
+          "type": "frontend",
+          "label": "Grafana",
+          "sublabel": "Golden Signals — API",
+          "pos": [
+            1005,
+            235
+          ],
+          "size": [
+            225,
+            67
+          ]
+        },
+        {
+          "id": "nodeexp",
+          "type": "backend",
+          "label": "Node Exporter",
+          "sublabel": "DaemonSet · 3/3",
+          "pos": [
+            655,
+            370
+          ],
+          "size": [
+            225,
+            67
+          ]
+        }
+      ],
+      "connections": [
+        {
+          "from": "traffic",
+          "to": "svc",
+          "label": "req / et /delay/1"
+        },
+        {
+          "from": "chaos",
+          "to": "svc",
+          "label": "/status/500",
+          "variant": "emphasis"
+        },
+        {
+          "from": "svc",
+          "to": "podinfo",
+          "label": "TCP 9898"
+        },
+        {
+          "from": "sm",
+          "to": "podinfo",
+          "label": "sélectionne Service"
+        },
+        {
+          "from": "sm",
+          "to": "prom",
+          "label": "scrape via HTTP",
+          "variant": "emphasis"
+        },
+        {
+          "from": "prom",
+          "to": "dash",
+          "label": "PromQL"
+        },
+        {
+          "from": "nodeexp",
+          "to": "prom",
+          "label": "métriques des nœuds"
+        }
+      ],
+      "boundaries": [
+        {
+          "kind": "region",
+          "label": "Namespace tp3 — application instrumentée",
+          "wraps": [
+            "traffic",
+            "chaos",
+            "svc",
+            "podinfo",
+            "sm"
+          ],
+          "pad": 8
+        },
+        {
+          "kind": "region",
+          "label": "Namespace monitoring — supervision",
+          "wraps": [
+            "prom",
+            "dash",
+            "nodeexp"
+          ],
+          "pad": 8
+        }
+      ],
+      "cards": [
+        {
+          "dot": "cyan",
+          "title": "Découverte et métriques",
+          "items": [
+            "2 endpoints UP confirmés via PromQL",
+            "ServiceMonitor : scrape /metrics toutes les 15 s",
+            "Histogramme HTTP : method, path, status, le",
+            "Dashboards Grafana 15757/15760 + Golden Signals"
+          ]
+        },
+        {
+          "dot": "emerald",
+          "title": "Résultats observés",
+          "items": [
+            "Trafic normal 1,86 req/s → 7,17 req/s avec 5 générateurs",
+            "Latence p95 : 2,29 s → 2,34 s sous charge",
+            "Au cours du chaos : 2/2 API UP malgré 72,34 % d’erreurs HTTP 5xx"
+          ]
+        }
+      ]
+    },
+    "logs": {
+      "schema_version": 1,
+      "diagram_type": "architecture",
+      "meta": {
+        "title": "TP3 · Logs & détection d’incident",
+        "subtitle": "DaemonSet Fluent Bit, Loki monolithique, LogQL et Alertmanager",
+        "output": "tp3-logs-alerting.html"
+      },
+      "components": [
+        {
+          "id": "cp",
+          "type": "backend",
+          "label": "Control-plane",
+          "sublabel": "Fluent Bit · taint toléré",
+          "pos": [
+            45,
+            50
+          ],
+          "size": [
+            230,
+            67
+          ]
+        },
+        {
+          "id": "wk1",
+          "type": "backend",
+          "label": "Worker 1",
+          "sublabel": "Fluent Bit · Running",
+          "pos": [
+            45,
+            185
+          ],
+          "size": [
+            230,
+            67
+          ]
+        },
+        {
+          "id": "wk2",
+          "type": "backend",
+          "label": "Worker 2",
+          "sublabel": "Fluent Bit · Running",
+          "pos": [
+            45,
+            320
+          ],
+          "size": [
+            230,
+            67
+          ]
+        },
+        {
+          "id": "fb",
+          "type": "security",
+          "label": "Fluent Bit",
+          "sublabel": "DaemonSet 3/3 · labels K8s",
+          "pos": [
+            385,
+            165
+          ],
+          "size": [
+            245,
+            67
+          ]
+        },
+        {
+          "id": "loki",
+          "type": "database",
+          "label": "Loki",
+          "sublabel": "Monolithic · port 3100",
+          "pos": [
+            735,
+            165
+          ],
+          "size": [
+            230,
+            67
+          ]
+        },
+        {
+          "id": "pvc",
+          "type": "database",
+          "label": "PVC Loki",
+          "sublabel": "storage-loki-0 · 2 Gio Bound",
+          "pos": [
+            735,
+            350
+          ],
+          "size": [
+            230,
+            67
+          ]
+        },
+        {
+          "id": "grafana",
+          "type": "frontend",
+          "label": "Grafana Explore",
+          "sublabel": "LogQL / Logs ERROR",
+          "pos": [
+            1085,
+            165
+          ],
+          "size": [
+            220,
+            67
+          ]
+        },
+        {
+          "id": "prom",
+          "type": "backend",
+          "label": "Prometheus",
+          "sublabel": "taux 5xx > 5 % / 2 m",
+          "pos": [
+            735,
+            40
+          ],
+          "size": [
+            230,
+            67
+          ]
+        },
+        {
+          "id": "alert",
+          "type": "security",
+          "label": "PrometheusRule",
+          "sublabel": "ApiTauxErreursEleve · for 1m",
+          "pos": [
+            1085,
+            40
+          ],
+          "size": [
+            220,
+            67
+          ]
+        },
+        {
+          "id": "am",
+          "type": "security",
+          "label": "Alertmanager",
+          "sublabel": "FIRING · réception confirmée",
+          "pos": [
+            1085,
+            350
+          ],
+          "size": [
+            220,
+            67
+          ]
+        }
+      ],
+      "connections": [
+        {
+          "from": "cp",
+          "to": "fb",
+          "label": "logs"
+        },
+        {
+          "from": "wk1",
+          "to": "fb",
+          "label": "logs"
+        },
+        {
+          "from": "wk2",
+          "to": "fb",
+          "label": "logs"
+        },
+        {
+          "from": "fb",
+          "to": "loki",
+          "label": "loki push",
+          "variant": "emphasis"
+        },
+        {
+          "from": "loki",
+          "to": "pvc",
+          "label": "stockage TSDB"
+        },
+        {
+          "from": "loki",
+          "to": "grafana",
+          "label": "LogQL"
+        },
+        {
+          "from": "prom",
+          "to": "alert",
+          "label": "évaluation > 5 %",
+          "variant": "emphasis"
+        },
+        {
+          "from": "alert",
+          "to": "am",
+          "label": "notification",
+          "variant": "emphasis"
+        }
+      ],
+      "boundaries": [
+        {
+          "kind": "region",
+          "label": "Agents sur trois nœuds Kind",
+          "wraps": [
+            "cp",
+            "wk1",
+            "wk2",
+            "fb"
+          ],
+          "pad": 7
+        },
+        {
+          "kind": "region",
+          "label": "Namespace monitoring",
+          "wraps": [
+            "loki",
+            "pvc",
+            "prom",
+            "grafana",
+            "alert",
+            "am"
+          ],
+          "pad": 7
+        }
+      ],
+      "cards": [
+        {
+          "dot": "emerald",
+          "title": "Chaîne de logs vérifiée",
+          "items": [
+            "Fluent Bit 3/3 après tolérance NoSchedule control-plane",
+            "Log TP3_LOKI_TEST retrouvé dans Grafana Explore",
+            "Logs ERROR issus du Deployment chaos retrouvés",
+            "Labels : job, namespace, pod, container, app"
+          ]
+        },
+        {
+          "dot": "rose",
+          "title": "Alerte 5xx réelle",
+          "items": [
+            "72,34 % de requêtes HTTP 5xx pendant le test",
+            "PrometheusRule : seuil 5 %, fenêtre 2m et for 1m",
+            "Statut FIRING confirmé dans Prometheus",
+            "Réception par Alertmanager prouvée par capture"
+          ]
+        }
+      ]
     }
   },
   "images": [
@@ -917,10 +1368,90 @@
       "group": "TP2",
       "name": "12 politiques inter namespaces",
       "src": "assets/preuves/tp2/12-politiques-inter-namespaces.png"
+    },
+    {
+      "group": "TP3",
+      "name": "01 01 stack monitoring",
+      "src": "assets/preuves/tp3/01-stack-monitoring.png"
+    },
+    {
+      "group": "TP3",
+      "name": "02 02 grafana accueil",
+      "src": "assets/preuves/tp3/02-grafana-accueil.png"
+    },
+    {
+      "group": "TP3",
+      "name": "03 03 servicemonitor api up",
+      "src": "assets/preuves/tp3/03-servicemonitor-api-up.png"
+    },
+    {
+      "group": "TP3",
+      "name": "04 04 promql cpu",
+      "src": "assets/preuves/tp3/04-promql-cpu.png"
+    },
+    {
+      "group": "TP3",
+      "name": "05 05 promql memoire",
+      "src": "assets/preuves/tp3/05-promql-memoire.png"
+    },
+    {
+      "group": "TP3",
+      "name": "06 06 promql trafic",
+      "src": "assets/preuves/tp3/06-promql-trafic.png"
+    },
+    {
+      "group": "TP3",
+      "name": "07 07 promql p95",
+      "src": "assets/preuves/tp3/07-promql-p95.png"
+    },
+    {
+      "group": "TP3",
+      "name": "08 08 dashboard normal",
+      "src": "assets/preuves/tp3/08-dashboard-normal.png"
+    },
+    {
+      "group": "TP3",
+      "name": "09 09 dashboard montee charge",
+      "src": "assets/preuves/tp3/09-dashboard-montee-charge.png"
+    },
+    {
+      "group": "TP3",
+      "name": "10 10 loki pvc",
+      "src": "assets/preuves/tp3/10-loki-pvc.png"
+    },
+    {
+      "group": "TP3",
+      "name": "11 11 fluent bit 3 noeuds",
+      "src": "assets/preuves/tp3/11-fluent-bit-3-noeuds.png"
+    },
+    {
+      "group": "TP3",
+      "name": "12 12 loki test",
+      "src": "assets/preuves/tp3/12-loki-test.png"
+    },
+    {
+      "group": "TP3",
+      "name": "13 13 loki erreurs chaos",
+      "src": "assets/preuves/tp3/13-loki-erreurs-chaos.png"
+    },
+    {
+      "group": "TP3",
+      "name": "14 14 alertmanager reception",
+      "src": "assets/preuves/tp3/14-alertmanager-reception.png"
+    },
+    {
+      "group": "TP3",
+      "name": "15 15 grafana 72 pourcent",
+      "src": "assets/preuves/tp3/15-grafana-72-pourcent.png"
+    },
+    {
+      "group": "TP3",
+      "name": "16 16 prometheus firing",
+      "src": "assets/preuves/tp3/16-prometheus-firing.png"
     }
   ],
-  "project": "Kubernetes M2 Super Cloud · TP1 + TP2",
-  "date": "05 novembre 2026",
+  "project": "Kubernetes M2 Super Cloud · TP1 + TP2 + TP3",
+  "date": "06 novembre 2026",
   "level": "Documentation de laboratoire fondée sur les résultats observés",
   "environment": [
     {
@@ -946,6 +1477,14 @@
     {
       "label": "Services",
       "value": "2 TP2 + MySQL TP1"
+    },
+    {
+      "label": "Observabilité",
+      "value": "Prometheus, Grafana, Loki, Fluent Bit"
+    },
+    {
+      "label": "Alerte TP3",
+      "value": "5xx > 5 % · FIRING observé"
     }
   ],
   "tests": [
@@ -1044,13 +1583,26 @@
       "np-04-frontend-to-api.yaml",
       "np-05-api-to-mysql.yaml",
       "np-06-mysql-ingress.yaml"
+    ],
+    "TP3": [
+      "values-monitoring.yaml",
+      "api-tp3.yaml",
+      "servicemonitor.yaml",
+      "values-loki.yaml",
+      "values-fluent-bit.yaml",
+      "chaos.yaml",
+      "alert-rules.yaml",
+      "golden-signals.json"
     ]
   },
   "notes": [
-    "Les sources de référence sont les manifests et comptes rendus des TP1 et TP2 ; aucune connexion live au cluster n’a été réalisée pour cet Atlas.",
+    "Les sources de référence sont les manifests et comptes rendus des TP1, TP2 et TP3 ; aucune connexion live au cluster n’a été réalisée pour cet Atlas.",
     "Le Pod « API » du TP1 est un générateur de logs BusyBox, distinct de l’API HTTP du TP2.",
     "Un test réussi sur TCP 3306 démontre une connectivité, pas des identifiants SQL valides.",
     "Les règles de cours autorisent le namespace ingress-nginx en entier sans limiter les ports : ce n’est pas une configuration de production.",
-    "La suppression du Pod et du StatefulSet n’équivaut pas à une sauvegarde de données."
+    "La suppression du Pod et du StatefulSet n’équivaut pas à une sauvegarde de données.",
+    "TP3 : la vue est documentaire, fondée sur des captures du 6 novembre, sans requêtes directes aux API live depuis GitHub Pages.",
+    "TP3 : l’alerte FIRING et sa réception Alertmanager sont prouvées ; l’état Resolved n’est pas attesté par capture dans le pack.",
+    "TP3 : la configuration Loki Monolithic est destinée à Kind, pas à une exploitation en production."
   ]
 }

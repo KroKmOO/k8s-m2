@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chaos
+  namespace: tp3
+spec:
+  # IMPORTANT : réplica 0 par défaut pour NE PAS relancer la simulation en réappliquant le dépôt.
+  # Pour le test : kubectl -n tp3 scale deployment/chaos --replicas=1
+  replicas: 0
+  selector:
+    matchLabels:
+      app: chaos
+  template:
+    metadata:
+      labels:
+        app: chaos
+    spec:
+      containers:
+        - name: chaos
+          image: busybox:1.36
+          command: ["sh", "-c"]
+          args:
+            - |
+              while true; do
+                if wget -qO- http://api:9898/status/500 > /dev/null 2>&1; then
+                  echo "INFO appel reussi"
+                else
+                  echo "ERROR appel /status/500 en echec"
+                fi
+                sleep 0.2
+              done

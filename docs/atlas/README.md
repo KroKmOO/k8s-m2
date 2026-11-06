@@ -1,6 +1,6 @@
-# Archify Atlas — Documentation Kubernetes TP1 & TP2
+# Archify Atlas — Documentation Kubernetes TP1, TP2 & TP3
 
-Documentation graphique et interactive du cluster `m2-k8s`, conçue à partir des énoncés, des manifestes YAML et des captures de tests fournis le 5 novembre 2026.
+Documentation graphique et interactive du cluster `m2-k8s`, conçue à partir des énoncés, des manifestes YAML et des captures de tests fournis le 6 novembre 2026.
 
 ## Ouvrir le portail
 
@@ -14,11 +14,12 @@ Documentation graphique et interactive du cluster `m2-k8s`, conçue à partir de
 2. **TP1 — Données & logs** : StatefulSet MySQL 8.4, Service Headless, PVC 1 Gi, init container, ConfigMap/Secret, Fluent Bit.
 3. **TP2 — Ingress TLS** : cert-manager, TLS Secret, routage host/path vers deux Services avec deux réplicas chacun.
 4. **TP2 — NetworkPolicies** : deny-all, exceptions DNS/Ingress/frontend/API, accès MySQL inter-namespaces.
-5. **Tests et preuves** : matrice des sept tests réseau, tests de persistance et galerie des captures de session.
+5. **TP3 — Observabilité** : métriques Prometheus/podinfo/ServiceMonitor, Grafana Golden Signals, Loki/Fluent Bit, PrometheusRule et Alertmanager.
+6. **Tests et preuves** : matrice des sept tests réseau, tests de persistance et galerie des captures de session.
 
 ## Sources JSON natives pour Archify
 
-Les fichiers `sources/*.architecture.json` suivent la structure publique `architecture` d’Archify (JSON IR) : `schema_version`, `diagram_type`, `meta`, `components`, `connections`, `boundaries`, `cards`. Ils sont modifiables et destinés au moteur Archify du dépôt tt-a1i/archify.
+Les six fichiers `sources/*.architecture.json` suivent la structure publique `architecture` d’Archify (JSON IR) : `schema_version`, `diagram_type`, `meta`, `components`, `connections`, `boundaries`, `cards`. Ils sont modifiables et destinés au moteur Archify du dépôt tt-a1i/archify.
 
 **Important — distinction entre portails :** `index.html` est un **portail Atlas autonome créé pour cette remise**, alimenté par les mêmes données ; ce n’est pas un export HTML généré et contrôlé par le moteur Archify. Les JSON n’ont pas été compilés avec le binaire Archify dans cet environnement. Pour obtenir les exports natifs Archify, utiliser le moteur installé chez vous avec les sources ci-dessous et traiter les éventuels diagnostics du validateur.
 
@@ -29,7 +30,7 @@ node bin/archify.mjs validate architecture /chemin/vers/docs/atlas/sources/tp1-c
 node bin/archify.mjs render architecture /chemin/vers/docs/atlas/sources/tp1-cluster.architecture.json /chemin/vers/tp1-cluster.html
 ```
 
-Exécuter le même enchaînement pour les quatre JSON. Avec la distribution Docker que vous utilisez déjà, monter ce dossier sous `/workspace` et remplacer `node bin/archify.mjs` par le point d’entrée `docker compose run --rm archify`, en adaptant les chemins au volume Docker.
+Exécuter le même enchaînement pour les six JSON. Avec la distribution Docker que vous utilisez déjà, monter ce dossier sous `/workspace` et remplacer `node bin/archify.mjs` par le point d’entrée `docker compose run --rm archify`, en adaptant les chemins au volume Docker.
 
 ## Intégrer dans le dépôt `k8s-m2`
 
@@ -46,9 +47,18 @@ Le portail ne remplace pas les fichiers `tp1/` et `tp2/` exigés par la formatri
 
 ## Limites et provenance
 
-- État documenté au **5 novembre 2026**, sans inspection live récente du cluster ou de GitHub.
+- État documenté au **6 novembre 2026**, sans inspection live récente du cluster ou de GitHub.
 - Les captures proviennent des preuves envoyées dans la conversation ; elles ne doivent pas être interprétées comme une supervision en temps réel.
 - Les tests CLI démontrent des comportements observés sur cet environnement de laboratoire, sans garantir un durcissement de production.
 - Aucun mot de passe, Secret Kubernetes ou kubeconfig n’est inclus.
 
 **Référence du moteur :** https://github.com/tt-a1i/archify
+
+## Extension TP3
+
+- `sources/tp3-metrics.architecture.json` : flux de métriques et dashboard.
+- `sources/tp3-logs-alerting.architecture.json` : collecte des logs, stockage et alerting.
+- `assets/preuves/tp3/` : seize captures provenant de la séance du 6 novembre 2026.
+- [Compte rendu et 11 réponses](../../tp3/README.md).
+
+La présentation Atlas est **statique** (GitHub Pages) et ne prend pas la main sur Grafana, Prometheus ou Kind.

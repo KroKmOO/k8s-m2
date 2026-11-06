@@ -1,0 +1,244 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "TP3 · Logs & détection d’incident",
+    "subtitle": "DaemonSet Fluent Bit, Loki monolithique, LogQL et Alertmanager",
+    "output": "tp3-logs-alerting.html"
+  },
+  "components": [
+    {
+      "id": "cp",
+      "type": "backend",
+      "label": "Control-plane",
+      "sublabel": "Fluent Bit · taint toléré",
+      "pos": [
+        45,
+        50
+      ],
+      "size": [
+        230,
+        67
+      ]
+    },
+    {
+      "id": "wk1",
+      "type": "backend",
+      "label": "Worker 1",
+      "sublabel": "Fluent Bit · Running",
+      "pos": [
+        45,
+        185
+      ],
+      "size": [
+        230,
+        67
+      ]
+    },
+    {
+      "id": "wk2",
+      "type": "backend",
+      "label": "Worker 2",
+      "sublabel": "Fluent Bit · Running",
+      "pos": [
+        45,
+        320
+      ],
+      "size": [
+        230,
+        67
+      ]
+    },
+    {
+      "id": "fb",
+      "type": "security",
+      "label": "Fluent Bit",
+      "sublabel": "DaemonSet 3/3 · labels K8s",
+      "pos": [
+        385,
+        165
+      ],
+      "size": [
+        245,
+        67
+      ]
+    },
+    {
+      "id": "loki",
+      "type": "database",
+      "label": "Loki",
+      "sublabel": "Monolithic · port 3100",
+      "pos": [
+        735,
+        165
+      ],
+      "size": [
+        230,
+        67
+      ]
+    },
+    {
+      "id": "pvc",
+      "type": "database",
+      "label": "PVC Loki",
+      "sublabel": "storage-loki-0 · 2 Gio Bound",
+      "pos": [
+        735,
+        350
+      ],
+      "size": [
+        230,
+        67
+      ]
+    },
+    {
+      "id": "grafana",
+      "type": "frontend",
+      "label": "Grafana Explore",
+      "sublabel": "LogQL / Logs ERROR",
+      "pos": [
+        1085,
+        165
+      ],
+      "size": [
+        220,
+        67
+      ]
+    },
+    {
+      "id": "prom",
+      "type": "backend",
+      "label": "Prometheus",
+      "sublabel": "taux 5xx > 5 % / 2 m",
+      "pos": [
+        735,
+        40
+      ],
+      "size": [
+        230,
+        67
+      ]
+    },
+    {
+      "id": "alert",
+      "type": "security",
+      "label": "PrometheusRule",
+      "sublabel": "ApiTauxErreursEleve · for 1m",
+      "pos": [
+        1085,
+        40
+      ],
+      "size": [
+        220,
+        67
+      ]
+    },
+    {
+      "id": "am",
+      "type": "security",
+      "label": "Alertmanager",
+      "sublabel": "FIRING · réception confirmée",
+      "pos": [
+        1085,
+        350
+      ],
+      "size": [
+        220,
+        67
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "from": "cp",
+      "to": "fb",
+      "label": "logs"
+    },
+    {
+      "from": "wk1",
+      "to": "fb",
+      "label": "logs"
+    },
+    {
+      "from": "wk2",
+      "to": "fb",
+      "label": "logs"
+    },
+    {
+      "from": "fb",
+      "to": "loki",
+      "label": "loki push",
+      "variant": "emphasis"
+    },
+    {
+      "from": "loki",
+      "to": "pvc",
+      "label": "stockage TSDB"
+    },
+    {
+      "from": "loki",
+      "to": "grafana",
+      "label": "LogQL"
+    },
+    {
+      "from": "prom",
+      "to": "alert",
+      "label": "évaluation > 5 %",
+      "variant": "emphasis"
+    },
+    {
+      "from": "alert",
+      "to": "am",
+      "label": "notification",
+      "variant": "emphasis"
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Agents sur trois nœuds Kind",
+      "wraps": [
+        "cp",
+        "wk1",
+        "wk2",
+        "fb"
+      ],
+      "pad": 7
+    },
+    {
+      "kind": "region",
+      "label": "Namespace monitoring",
+      "wraps": [
+        "loki",
+        "pvc",
+        "prom",
+        "grafana",
+        "alert",
+        "am"
+      ],
+      "pad": 7
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Chaîne de logs vérifiée",
+      "items": [
+        "Fluent Bit 3/3 après tolérance NoSchedule control-plane",
+        "Log TP3_LOKI_TEST retrouvé dans Grafana Explore",
+        "Logs ERROR issus du Deployment chaos retrouvés",
+        "Labels : job, namespace, pod, container, app"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Alerte 5xx réelle",
+      "items": [
+        "72,34 % de requêtes HTTP 5xx pendant le test",
+        "PrometheusRule : seuil 5 %, fenêtre 2m et for 1m",
+        "Statut FIRING confirmé dans Prometheus",
+        "Réception par Alertmanager prouvée par capture"
+      ]
+    }
+  ]
+}

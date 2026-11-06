@@ -1,0 +1,207 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "TP3 · Métriques & Golden Signals",
+    "subtitle": "API podinfo, ServiceMonitor, Prometheus et dashboards Grafana",
+    "output": "tp3-metrics.html"
+  },
+  "components": [
+    {
+      "id": "traffic",
+      "type": "external",
+      "label": "Générateur trafic",
+      "sublabel": "BusyBox · 1 → 5 Pods",
+      "pos": [
+        40,
+        110
+      ],
+      "size": [
+        205,
+        67
+      ]
+    },
+    {
+      "id": "chaos",
+      "type": "external",
+      "label": "Générateur chaos",
+      "sublabel": "/status/500 · HTTP 5xx",
+      "pos": [
+        40,
+        310
+      ],
+      "size": [
+        205,
+        67
+      ]
+    },
+    {
+      "id": "svc",
+      "type": "cloud",
+      "label": "Service API",
+      "sublabel": "tp3 / api:9898",
+      "pos": [
+        345,
+        195
+      ],
+      "size": [
+        216,
+        67
+      ]
+    },
+    {
+      "id": "podinfo",
+      "type": "backend",
+      "label": "Podinfo ×2",
+      "sublabel": "/metrics · histogramme HTTP",
+      "pos": [
+        655,
+        195
+      ],
+      "size": [
+        245,
+        67
+      ]
+    },
+    {
+      "id": "sm",
+      "type": "security",
+      "label": "ServiceMonitor",
+      "sublabel": "tp3 · path /metrics · 15 s",
+      "pos": [
+        665,
+        45
+      ],
+      "size": [
+        225,
+        67
+      ]
+    },
+    {
+      "id": "prom",
+      "type": "backend",
+      "label": "Prometheus",
+      "sublabel": "namespace monitoring",
+      "pos": [
+        1005,
+        60
+      ],
+      "size": [
+        225,
+        67
+      ]
+    },
+    {
+      "id": "dash",
+      "type": "frontend",
+      "label": "Grafana",
+      "sublabel": "Golden Signals — API",
+      "pos": [
+        1005,
+        235
+      ],
+      "size": [
+        225,
+        67
+      ]
+    },
+    {
+      "id": "nodeexp",
+      "type": "backend",
+      "label": "Node Exporter",
+      "sublabel": "DaemonSet · 3/3",
+      "pos": [
+        655,
+        370
+      ],
+      "size": [
+        225,
+        67
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "from": "traffic",
+      "to": "svc",
+      "label": "req / et /delay/1"
+    },
+    {
+      "from": "chaos",
+      "to": "svc",
+      "label": "/status/500",
+      "variant": "emphasis"
+    },
+    {
+      "from": "svc",
+      "to": "podinfo",
+      "label": "TCP 9898"
+    },
+    {
+      "from": "sm",
+      "to": "podinfo",
+      "label": "sélectionne Service"
+    },
+    {
+      "from": "sm",
+      "to": "prom",
+      "label": "scrape via HTTP",
+      "variant": "emphasis"
+    },
+    {
+      "from": "prom",
+      "to": "dash",
+      "label": "PromQL"
+    },
+    {
+      "from": "nodeexp",
+      "to": "prom",
+      "label": "métriques des nœuds"
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Namespace tp3 — application instrumentée",
+      "wraps": [
+        "traffic",
+        "chaos",
+        "svc",
+        "podinfo",
+        "sm"
+      ],
+      "pad": 8
+    },
+    {
+      "kind": "region",
+      "label": "Namespace monitoring — supervision",
+      "wraps": [
+        "prom",
+        "dash",
+        "nodeexp"
+      ],
+      "pad": 8
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Découverte et métriques",
+      "items": [
+        "2 endpoints UP confirmés via PromQL",
+        "ServiceMonitor : scrape /metrics toutes les 15 s",
+        "Histogramme HTTP : method, path, status, le",
+        "Dashboards Grafana 15757/15760 + Golden Signals"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Résultats observés",
+      "items": [
+        "Trafic normal 1,86 req/s → 7,17 req/s avec 5 générateurs",
+        "Latence p95 : 2,29 s → 2,34 s sous charge",
+        "Au cours du chaos : 2/2 API UP malgré 72,34 % d’erreurs HTTP 5xx"
+      ]
+    }
+  ]
+}
